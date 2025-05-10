@@ -4,7 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.uniquindio.repositorie.ConnectionOracle;
+import org.uniquindio.repository.impl.ConnectionOracle;
 
 import java.sql.Connection;
 
@@ -20,7 +20,7 @@ public class Main extends Application {
         }
 
         // Continúa con tu interfaz
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/interface.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/interface.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 400);
         stage.setTitle("App JavaFX con Oracle");
         stage.setScene(scene);

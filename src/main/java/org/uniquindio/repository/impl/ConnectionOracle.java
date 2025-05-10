@@ -1,4 +1,4 @@
-package org.uniquindio.repositorie;
+package org.uniquindio.repository.impl;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
