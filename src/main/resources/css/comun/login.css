@@ -1,0 +1,167 @@
+/* Fuentes personalizadas */
+@font-face {
+    font-family: 'Poppins';
+    src: url('../fonts/Poppins-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-Bold';
+    src: url('../fonts/Poppins-Bold.ttf');
+}
+
+/* Colores de Edutec */
+* {
+    -fx-primary-color: #0057B8;         /* Azul institucional */
+    -fx-secondary-color: #4CAF50;       /* Verde para acentos */
+    -fx-primary-text: #333333;          /* Texto oscuro para contraste */
+    -fx-secondary-text: #757575;        /* Texto gris secundario */
+    -fx-background-light: #F5F9FC;      /* Fondo claro */
+    -fx-error-color: #F44336;           /* Rojo para errores */
+}
+
+/* Estilos generales */
+.background {
+    -fx-background-color: white;
+}
+
+/* Panel izquierdo - Imagen y logo */
+.left-panel {
+    -fx-background-color: linear-gradient(to bottom right, -fx-primary-color, derive(0000, 40%));
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);
+}
+
+.slogan-text {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 18px;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 1, 1);
+}
+
+/* Panel derecho - Formulario */
+.login-panel {
+    -fx-background-color: white;
+}
+
+.title-text {
+    -fx-font-family: "Poppins-Bold";
+    -fx-font-size: 26px;
+    -fx-text-fill: -fx-primary-color;
+    -fx-padding: 0 0 5 0;
+}
+
+.welcome-text {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 14px;
+    -fx-text-fill: -fx-secondary-text;
+    -fx-padding: 0 0 10 0;
+}
+
+.input-label {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 13px;
+    -fx-text-fill: -fx-primary-text;
+}
+
+.footer-text {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-secondary-text;
+    -fx-padding: 20 0 10 0;
+}
+
+/* Elementos de entrada */
+.text-field, .password-field, .combo-box {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 14px;
+    -fx-background-color: -fx-background-light;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 10 15 10 15;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 0);
+}
+
+.text-field:focused, .password-field:focused, .combo-box:focused {
+    -fx-border-color: -fx-primary-color;
+    -fx-background-color: white;
+    -fx-effect: innershadow(gaussian, rgba(0,87,184,0.1), 5, 0, 0, 0);
+}
+
+/* Checkbox */
+.check-box {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 13px;
+    -fx-text-fill: -fx-secondary-text;
+}
+
+.check-box .box {
+    -fx-background-color: -fx-background-light;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 3px;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: white;
+}
+
+.check-box:selected .box {
+    -fx-background-color: -fx-secondary-color;
+}
+
+/* Botones */
+.btn-login {
+    -fx-font-family: "Poppins-Bold";
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+    -fx-background-color: -fx-secondary-color;
+    -fx-background-radius: 30px;
+    -fx-padding: 10 40 10 40;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(76,175,80,0.3), 10, 0, 0, 3);
+}
+
+.btn-login:hover {
+    -fx-background-color: derive(-fx-secondary-color, 10%);
+}
+
+.btn-login:pressed {
+    -fx-background-color: derive(-fx-secondary-color, -10%);
+}
+
+.btn-cancel {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 14px;
+    -fx-text-fill: -fx-secondary-text;
+    -fx-background-color: transparent;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 30px;
+    -fx-background-radius: 30px;
+    -fx-padding: 10 30 10 30;
+    -fx-cursor: hand;
+}
+
+.btn-cancel:hover {
+    -fx-border-color: -fx-secondary-text;
+    -fx-text-fill: -fx-primary-text;
+}
+
+/* Hyperlink */
+.recover-link {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 13px;
+    -fx-text-fill: -fx-primary-color;
+    -fx-border-color: transparent;
+    -fx-padding: 5 0 0 0;
+}
+
+.recover-link:hover {
+    -fx-underline: true;
+}
+
+/* Mensajes de error */
+.error-message {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-error-color;
+    -fx-padding: 5 0 0 0;
+}
