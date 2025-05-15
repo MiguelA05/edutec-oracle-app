@@ -384,6 +384,7 @@ CREATE TABLE PresentacionExamen (
                                     respuestas_correctas NUMBER(10),
                                     respuestas_incorrectas NUMBER(10),
                                     tiempo INTEGER,
+                                    hora_inicio DATE,
                                     direccion_ip VARCHAR2(45),
                                     examen_id INTEGER,
                                     estudiante_cedula NUMBER(10),
