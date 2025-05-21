@@ -1,0 +1,136 @@
+.form-container {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 20px;
+}
+
+.titulo-vista {
+    -fx-font-size: 1.8em; /* 22px o 28px */
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50; /* Azul oscuro/gris */
+    -fx-alignment: center;
+    -fx-padding: 10px;
+}
+
+.titled-pane-custom > .title {
+    -fx-background-color: #E9EEF2; /* Un gris azulado claro para el título del panel */
+    -fx-font-weight: bold;
+    -fx-font-size: 1.1em;
+    -fx-text-fill: #34495E;
+    -fx-padding: 8px 12px;
+    -fx-border-color: #D5D8DC;
+    -fx-border-width: 0 0 1px 0; /* Borde inferior */
+}
+
+.titled-pane-custom > .title > .arrow-button .arrow {
+    -fx-background-color: #34495E;
+}
+
+.titled-pane-custom > .content {
+    -fx-padding: 15px;
+    -fx-border-color: #D5D8DC;
+    -fx-border-width: 0 1px 1px 1px; /* Bordes laterales e inferior */
+}
+
+.form-label {
+    -fx-font-size: 1em;
+    -fx-text-fill: #4A4A4A;
+    -fx-padding: 5px 0 0 0; /* Alineación con campos */
+}
+
+.form-label-bold {
+    -fx-font-size: 1em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+.text-field, .combo-box, .date-picker, .spinner {
+    -fx-pref-height: 35px;
+    -fx-font-size: 0.95em;
+    -fx-border-color: #BDC3C7;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.text-field:focused, .combo-box:focused, .date-picker:focused, .spinner:focused {
+    -fx-border-color: #3498DB; /* Azul al enfocar */
+    -fx-effect: dropshadow(gaussian, #3498DB, 3, 0.1, 0, 0);
+}
+
+.text-area {
+    -fx-font-size: 0.95em;
+    -fx-border-color: #BDC3C7;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-wrap-text: true;
+}
+.text-area:focused {
+    -fx-border-color: #3498DB;
+}
+
+
+.table-view {
+    -fx-border-color: #D5D8DC;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #F1F4F6;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #2C3E50;
+    -fx-font-weight: bold;
+    -fx-padding: 8px;
+}
+
+.button-accion {
+    -fx-background-color: #2ECC71; /* Verde */
+    -fx-text-fill: white;
+    -fx-font-size: 0.9em;
+    -fx-padding: 7px 15px;
+    -fx-background-radius: 4px;
+}
+.button-accion:hover {
+    -fx-background-color: #27AE60;
+}
+
+.button-eliminar-tabla {
+    -fx-background-color: #E74C3C; /* Rojo */
+    -fx-text-fill: white;
+    -fx-font-size: 0.8em;
+    -fx-padding: 4px 8px;
+}
+.button-eliminar-tabla:hover {
+    -fx-background-color: #C0392B;
+}
+
+.button-guardar {
+    -fx-background-color: #007bff; /* Azul primario */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 1.1em;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 5px;
+}
+.button-guardar:hover {
+    -fx-background-color: #0056b3;
+}
+
+.button-cancelar {
+    -fx-background-color: #6c757d; /* Gris */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 1.1em;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 5px;
+}
+.button-cancelar:hover {
+    -fx-background-color: #545b62;
+}
+
+.label-nota {
+    -fx-font-size: 0.85em;
+    -fx-text-fill: #7f8c8d; /* Gris */
+    -fx-font-style: italic;
+}
