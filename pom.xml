@@ -4,19 +4,20 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Considera cambiar groupId y artifactId para que coincidan con tu estructura de paquetes,
+         por ejemplo, org.uniquindio y edutec -->
     <groupId>com.miempresa</groupId>
     <artifactId>javafxoracleapp</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>24</maven.compiler.source>
-        <maven.compiler.target>24</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.2</javafx.version>
-    </properties>
+        <lombok.version>1.18.32</lombok.version> </properties>
 
     <dependencies>
-        <!-- JavaFX Modules -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -27,49 +28,63 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-        <!-- Añadido explícitamente javafx-graphics -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- Oracle JDBC Driver (lo agregarás manualmente) -->
+        <!-- Asegúrate de tener una carpeta 'lib' en la raíz de tu proyecto
+             y que 'ojdbc17.jar' esté dentro de ella. -->
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc8</artifactId>
-            <version>19.3.0.0</version>
-            <scope>system</scope>
+            <artifactId>ojdbc17-local</artifactId> <version>17-local</version> <scope>system</scope>
             <systemPath>${project.basedir}/lib/ojdbc17.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.32</version> <!-- Verifica la última versión -->
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Plugin para ejecutar JavaFX -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version> <configuration>
+                <source>${maven.compiler.source}</source>
+                <target>${maven.compiler.target}</target>
+            </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.8</version>
-                <configuration>
-                    <mainClass>org.uniquindio.Main</mainClass>
-                    <options>
-                        <option>--add-exports</option>
-                        <option>javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED</option>
-                        <option>--add-exports</option>
-                        <option>javafx.graphics/com.sun.glass.utils=ALL-UNNAMED</option>
-                        <option>--enable-native-access=javafx.graphics</option>
-                    </options>
-                </configuration>
+                <version>0.0.8</version> <configuration>
+                <mainClass>org.uniquindio.Main</mainClass>
+                <!-- Estas opciones pueden ser necesarias para JavaFX en versiones recientes de JDK con módulos.
+                     Si tu aplicación es sencilla y no modular, podrían no ser estrictamente necesarias. -->
+                <options>
+                    <option>--add-exports</option>
+                    <option>javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED</option>
+                    <option>--add-exports</option>
+                    <option>javafx.graphics/com.sun.glass.utils=ALL-UNNAMED</option>
+                    <!-- La siguiente opción puede ser útil si tienes problemas de acceso nativo,
+                         pero también puede ser específica de ciertos entornos o problemas.
+                         Si no es necesaria, puedes probar a quitarla. -->
+                </options>
+            </configuration>
+                <!-- La sección <executions> con <goal>run</goal> es útil si quieres ejecutar
+                     directamente con 'mvn javafx:run' desde la línea de comandos.
+                     Si ejecutas principalmente desde el IDE, esta sección podría no ser
+                     estrictamente necesaria para la ejecución del IDE, pero es buena práctica. -->
                 <executions>
                     <execution>
+                        <id>default-cli</id>
                         <goals>
                             <goal>run</goal>
                         </goals>
