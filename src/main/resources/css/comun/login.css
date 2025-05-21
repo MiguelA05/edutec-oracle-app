@@ -1,167 +1,125 @@
-/* Fuentes personalizadas */
-@font-face {
-    font-family: 'Poppins';
-    src: url('../fonts/Poppins-Regular.ttf');
-}
-
-@font-face {
-    font-family: 'Poppins-Bold';
-    src: url('../fonts/Poppins-Bold.ttf');
-}
-
-/* Colores de Edutec */
-* {
-    -fx-primary-color: #0057B8;         /* Azul institucional */
-    -fx-secondary-color: #4CAF50;       /* Verde para acentos */
-    -fx-primary-text: #333333;          /* Texto oscuro para contraste */
-    -fx-secondary-text: #757575;        /* Texto gris secundario */
-    -fx-background-light: #F5F9FC;      /* Fondo claro */
-    -fx-error-color: #F44336;           /* Rojo para errores */
-}
-
-/* Estilos generales */
+/* Estilos generales para el fondo del StackPane principal */
 .background {
-    -fx-background-color: white;
+    -fx-background-color: #F0F2F5; /* Un gris claro como fondo general */
 }
 
-/* Panel izquierdo - Imagen y logo */
+/* Panel Izquierdo: Imagen de fondo con logo y eslogan */
 .left-panel {
-    -fx-background-color: linear-gradient(to bottom right, -fx-primary-color, derive(0000, 40%));
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);
+    -fx-background-color: #007bff; /* Un azul primario, puedes cambiarlo o usar una imagen */
+    /* Para usar una imagen de fondo:
+    -fx-background-image: url("@../images/tu_imagen_de_fondo.png");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+    */
+    -fx-padding: 40px;
 }
 
 .slogan-text {
-    -fx-font-family: "Poppins";
-    -fx-font-size: 18px;
-    -fx-text-fill: white;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 1, 1);
+    -fx-font-size: 1.5em; /* 18px si la base es 12px, o 24px si es 16px */
+    -fx-fill: white;
+    -fx-text-fill: white; /* Para Label, Text */
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
 }
 
-/* Panel derecho - Formulario */
+/* Panel Derecho: Formulario de login */
 .login-panel {
     -fx-background-color: white;
+    -fx-padding: 40px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0.5, 0, 5); /* Sombra sutil */
+    -fx-background-radius: 8px; /* Bordes redondeados para el panel de login */
 }
 
 .title-text {
-    -fx-font-family: "Poppins-Bold";
-    -fx-font-size: 26px;
-    -fx-text-fill: -fx-primary-color;
-    -fx-padding: 0 0 5 0;
+    -fx-font-size: 2.5em; /* 30px o 40px */
+    -fx-font-weight: bold;
+    -fx-fill: #333333;
+    -fx-text-fill: #333333;
 }
 
 .welcome-text {
-    -fx-font-family: "Poppins";
-    -fx-font-size: 14px;
-    -fx-text-fill: -fx-secondary-text;
-    -fx-padding: 0 0 10 0;
+    -fx-font-size: 1.2em; /* 14px o 19px */
+    -fx-fill: #555555;
+    -fx-text-fill: #555555;
 }
 
 .input-label {
-    -fx-font-family: "Poppins";
-    -fx-font-size: 13px;
-    -fx-text-fill: -fx-primary-text;
+    -fx-font-size: 1em; /* 12px o 16px */
+    -fx-font-weight: bold;
+    -fx-text-fill: #444444;
 }
 
-.footer-text {
-    -fx-font-family: "Poppins";
-    -fx-font-size: 12px;
-    -fx-text-fill: -fx-secondary-text;
-    -fx-padding: 20 0 10 0;
-}
-
-/* Elementos de entrada */
-.text-field, .password-field, .combo-box {
-    -fx-font-family: "Poppins";
-    -fx-font-size: 14px;
-    -fx-background-color: -fx-background-light;
-    -fx-border-color: #E0E0E0;
+.text-field, .combo-box {
+    -fx-pref-height: 40px;
+    -fx-font-size: 1em;
+    -fx-border-color: #CCCCCC;
+    -fx-border-width: 1px;
     -fx-border-radius: 5px;
     -fx-background-radius: 5px;
-    -fx-padding: 10 15 10 15;
-    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 0);
+    -fx-padding: 5px 10px;
 }
 
-.text-field:focused, .password-field:focused, .combo-box:focused {
-    -fx-border-color: -fx-primary-color;
-    -fx-background-color: white;
-    -fx-effect: innershadow(gaussian, rgba(0,87,184,0.1), 5, 0, 0, 0);
+.text-field:focused, .combo-box:focused {
+    -fx-border-color: #007bff;
+    -fx-effect: dropshadow(gaussian, #007bff, 5, 0.2, 0, 0);
 }
 
-/* Checkbox */
-.check-box {
-    -fx-font-family: "Poppins";
-    -fx-font-size: 13px;
-    -fx-text-fill: -fx-secondary-text;
+.combo-box .list-cell {
+    -fx-font-size: 1em;
+    -fx-padding: 8px;
 }
 
 .check-box .box {
-    -fx-background-color: -fx-background-light;
-    -fx-border-color: #E0E0E0;
+    -fx-border-color: #007bff;
     -fx-border-radius: 3px;
 }
 
 .check-box:selected .mark {
-    -fx-background-color: white;
+    -fx-background-color: #007bff;
 }
 
-.check-box:selected .box {
-    -fx-background-color: -fx-secondary-color;
+.check-box .text {
+    -fx-font-size: 0.95em;
+    -fx-text-fill: #333333;
 }
 
-/* Botones */
 .btn-login {
-    -fx-font-family: "Poppins-Bold";
-    -fx-font-size: 14px;
+    -fx-background-color: #007bff;
     -fx-text-fill: white;
-    -fx-background-color: -fx-secondary-color;
-    -fx-background-radius: 30px;
-    -fx-padding: 10 40 10 40;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(three-pass-box, rgba(76,175,80,0.3), 10, 0, 0, 3);
+    -fx-font-size: 1.1em;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.3, 0, 2);
 }
 
 .btn-login:hover {
-    -fx-background-color: derive(-fx-secondary-color, 10%);
-}
-
-.btn-login:pressed {
-    -fx-background-color: derive(-fx-secondary-color, -10%);
+    -fx-background-color: #0056b3;
 }
 
 .btn-cancel {
-    -fx-font-family: "Poppins";
-    -fx-font-size: 14px;
-    -fx-text-fill: -fx-secondary-text;
-    -fx-background-color: transparent;
-    -fx-border-color: #E0E0E0;
-    -fx-border-radius: 30px;
-    -fx-background-radius: 30px;
-    -fx-padding: 10 30 10 30;
-    -fx-cursor: hand;
+    -fx-background-color: #6c757d; /* Un gris para cancelar */
+    -fx-text-fill: white;
+    -fx-font-size: 1.1em;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 5px;
 }
 
 .btn-cancel:hover {
-    -fx-border-color: -fx-secondary-text;
-    -fx-text-fill: -fx-primary-text;
+    -fx-background-color: #545b62;
 }
 
-/* Hyperlink */
 .recover-link {
-    -fx-font-family: "Poppins";
-    -fx-font-size: 13px;
-    -fx-text-fill: -fx-primary-color;
-    -fx-border-color: transparent;
-    -fx-padding: 5 0 0 0;
+    -fx-font-size: 0.9em;
+    -fx-text-fill: #007bff;
 }
 
 .recover-link:hover {
-    -fx-underline: true;
+    -fx-text-fill: #0056b3;
 }
 
-/* Mensajes de error */
-.error-message {
-    -fx-font-family: "Poppins";
-    -fx-font-size: 12px;
-    -fx-text-fill: -fx-error-color;
-    -fx-padding: 5 0 0 0;
+.footer-text {
+    -fx-font-size: 0.85em;
+    -fx-text-fill: #777777;
 }

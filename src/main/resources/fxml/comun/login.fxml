@@ -1,84 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
-
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.collections.FXCollections?>
 <?import java.lang.String?>
-<StackPane id="root" prefHeight="600.0" prefWidth="900.0" styleClass="background" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.uniquindio.controller.LoginController">
+<?import javafx.scene.control.Separator?>
+
+<StackPane id="root" prefHeight="600.0" prefWidth="900.0" styleClass="background"
+           stylesheets="@../../css/comun/login.css"
+           xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.uniquindio.ui.controller.comun.LoginController">
     <children>
         <HBox alignment="CENTER" prefHeight="600.0" prefWidth="900.0">
-            <!-- Panel Izquierdo - Imagen de fondo con logo y eslogan -->
             <StackPane HBox.hgrow="ALWAYS" styleClass="left-panel">
                 <VBox alignment="CENTER" spacing="20.0">
                     <ImageView fitWidth="220.0" preserveRatio="true">
                         <image>
-                            <Image url="" />
+                            <Image url="@../../images/logo_edutec.png" />
                         </image>
                     </ImageView>
                     <Label styleClass="slogan-text" text="Transformando la evaluación educativa" />
                 </VBox>
             </StackPane>
 
-            <!-- Panel Derecho - Formulario de login -->
             <VBox alignment="CENTER" prefWidth="450.0" styleClass="login-panel">
                 <padding>
-                    <Insets left="40.0" right="40.0" />
+                    <Insets left="40.0" right="40.0" top="20.0" bottom="20.0" />
                 </padding>
                 <children>
-                    <VBox spacing="30.0" maxWidth="350.0">
-                        <Label styleClass="title-text" text="Iniciar Sesión" />
+                    <VBox spacing="25.0" maxWidth="350.0"> <Label styleClass="title-text" text="Iniciar Sesión" />
                         <Label styleClass="welcome-text" text="Bienvenido a la plataforma de exámenes en línea" />
 
-                        <!-- Selector de Rol -->
-                        <VBox spacing="10.0">
-                            <Label styleClass="input-label" text="Seleccione su rol:" />
+                        <VBox spacing="8.0"> <Label styleClass="input-label" text="Seleccione su rol:" />
                             <ComboBox fx:id="comboRol" promptText="Seleccione rol" styleClass="combo-box" prefWidth="350.0">
                                 <items>
                                     <FXCollections fx:factory="observableArrayList">
-                                        <String fx:value="Estudiante" />
-                                        <String fx:value="Profesor" />
-                                        <String fx:value="Administrador" />
                                     </FXCollections>
                                 </items>
                             </ComboBox>
                         </VBox>
 
-                        <!-- Campo Usuario -->
-                        <VBox spacing="10.0">
+                        <VBox spacing="8.0">
                             <Label styleClass="input-label" text="Usuario (Cédula):" />
                             <TextField fx:id="textFieldUsuario" promptText="Ingrese su número de cédula" styleClass="text-field" />
                         </VBox>
 
-                        <!-- Campo Contraseña -->
-                        <VBox spacing="10.0">
+                        <VBox spacing="8.0">
                             <Label styleClass="input-label" text="Contraseña:" />
                             <PasswordField fx:id="passwordField" promptText="Ingrese su contraseña" styleClass="text-field" />
                         </VBox>
 
-                        <!-- Checkbox Recordar -->
                         <HBox alignment="CENTER_LEFT">
                             <CheckBox fx:id="checkBoxRecordar" styleClass="check-box" text="Recordar mis datos" />
                         </HBox>
 
-                        <!-- Botones de acción -->
                         <HBox spacing="15.0" alignment="CENTER">
-                            <Button fx:id="btnIngresar" onAction="#handleIngresar" styleClass="btn-login" text="Ingresar" />
-                            <Button fx:id="btnCancelar" onAction="#handleCancelar" styleClass="btn-cancel" text="Cancelar" />
+                            <Button fx:id="btnIngresar" onAction="#handleIngresar" styleClass="btn-login" text="Ingresar" prefWidth="120.0"/>
+                            <Button fx:id="btnCancelar" onAction="#handleCancelar" styleClass="btn-cancel" text="Cancelar" prefWidth="120.0"/>
                         </HBox>
 
-                        <!-- Link de recuperación -->
                         <HBox alignment="CENTER">
                             <Hyperlink fx:id="linkOlvido" onAction="#handleOlvido" styleClass="recover-link" text="¿Olvidó su contraseña?" />
                         </HBox>
                     </VBox>
 
-                    <!-- Footer -->
                     <Region VBox.vgrow="ALWAYS" />
-                    <Label styleClass="footer-text" text="© 2025 Edutec | Todos los derechos reservados" />
+                    <Label styleClass="footer-text" text="© 2025 Edutec | Todos los derechos reservados">
+                        <VBox.margin>
+                            <Insets top="20.0" />
+                        </VBox.margin>
+                    </Label>
                 </children>
             </VBox>
         </HBox>
