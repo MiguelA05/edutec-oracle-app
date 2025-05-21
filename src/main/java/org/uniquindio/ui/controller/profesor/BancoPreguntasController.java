@@ -1,4 +1,4 @@
 package org.uniquindio.ui.controller.profesor;
 
-public class GestionCursosProfesor {
+public class BancoPreguntasController {
 }
