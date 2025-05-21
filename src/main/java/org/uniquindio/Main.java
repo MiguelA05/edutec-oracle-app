@@ -22,7 +22,7 @@ public class Main extends Application {
         }
 
         // Continúa con tu interfaz
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/profesor/dashboard_profesor.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/profesor/crear_pregunta_dialog.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("EduTec");
         stage.getIcons().add(new Image("/images/logo_edutec.png"));

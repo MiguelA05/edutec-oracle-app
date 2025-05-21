@@ -1,0 +1,126 @@
+.form-container-dialog {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 20px;
+}
+
+.titulo-dialogo {
+    -fx-font-size: 1.6em; /* 20px o 26px */
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50; /* Azul oscuro/gris */
+    -fx-alignment: center;
+    -fx-padding: 10px;
+}
+
+.form-label-dialog {
+    -fx-font-size: 0.95em;
+    -fx-text-fill: #4A4A4A;
+    -fx-padding: 5px 0 0 0;
+}
+
+.form-label-dialog-bold {
+    -fx-font-size: 1.05em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+    -fx-padding-bottom: 5px;
+}
+
+.form-container-dialog .text-field,
+.form-container-dialog .combo-box,
+.form-container-dialog .spinner,
+.form-container-dialog .text-area {
+    -fx-pref-height: 38px;
+    -fx-font-size: 1em;
+    -fx-border-color: #BDC3C7;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.form-container-dialog .text-field:focused,
+.form-container-dialog .combo-box:focused,
+.form-container-dialog .spinner:focused,
+.form-container-dialog .text-area:focused {
+    -fx-border-color: #3498DB; /* Azul al enfocar */
+    -fx-effect: dropshadow(gaussian, #3498DB, 3, 0.1, 0, 0);
+}
+
+.form-container-dialog .text-area {
+    -fx-min-height: 70px; /* Altura mínima para el texto de la pregunta */
+}
+
+.vbox-opciones-pregunta, .vbox-verdadero-falso {
+    -fx-padding: 10px;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-color: #FDFEFE; /* Un fondo muy sutil */
+}
+
+.scroll-pane-opciones {
+    -fx-min-height: 100px;
+    -fx-max-height: 200px; /* Para evitar que crezca demasiado */
+}
+
+.button-accion-dialog {
+    -fx-background-color: #27AE60; /* Verde más claro */
+    -fx-text-fill: white;
+    -fx-font-size: 0.9em;
+    -fx-padding: 6px 12px;
+}
+.button-accion-dialog:hover {
+    -fx-background-color: #229954;
+}
+
+.button-eliminar-opcion-dialog {
+    -fx-background-color: #E74C3C; /* Rojo */
+    -fx-text-fill: white;
+    -fx-font-size: 0.8em;
+    -fx-padding: 3px 6px;
+    -fx-shape: "M 0 -3.5 L 3.5 0 L 0 3.5 L -3.5 0 Z"; /* Forma de X simple */
+}
+.button-eliminar-opcion-dialog:hover {
+    -fx-background-color: #C0392B;
+}
+
+.radio-button-dialog .radio {
+    -fx-border-width: 1px;
+    -fx-border-color: #3498DB;
+    -fx-background-color: white;
+    -fx-padding: 4px;
+}
+.radio-button-dialog:selected .radio .dot {
+    -fx-background-color: #3498DB;
+    -fx-mark-color: #3498DB; /* Para el punto interno */
+}
+.radio-button-dialog .text {
+    -fx-font-size: 1em;
+}
+
+
+.botones-dialogo {
+    -fx-background-color: #F4F6F7;
+    -fx-border-color: #EAECEE transparent transparent transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 15px;
+}
+
+.button-guardar-dialog {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 1em;
+    -fx-padding: 8px 18px;
+}
+.button-guardar-dialog:hover {
+    -fx-background-color: #0056b3;
+}
+
+.button-cancelar-dialog {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 1em;
+    -fx-padding: 8px 18px;
+}
+.button-cancelar-dialog:hover {
+    -fx-background-color: #545b62;
+}
