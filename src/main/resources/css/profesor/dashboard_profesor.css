@@ -1,0 +1,135 @@
+/* Estilo general del dashboard del profesor */
+.root-pane-profesor { /* Si usas un ID o clase para el BorderPane raíz */
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #ECEFF1; /* Un gris azulado muy claro */
+}
+
+/* Panel de Navegación Lateral del Profesor */
+.panel-navegacion-profesor {
+    -fx-background-color: #2C3E50; /* Azul naval oscuro */
+    -fx-padding: 15px;
+    -fx-spacing: 12px; /* Un poco más de espaciado */
+}
+
+.nombre-usuario { /* Clase común para nombre de estudiante y profesor */
+    -fx-font-size: 1.3em;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 5px 0;
+}
+
+.correo-usuario { /* Clase común para correo */
+    -fx-font-size: 0.9em;
+    -fx-text-fill: #B0BEC5; /* Gris azulado claro */
+}
+
+.panel-navegacion-profesor .boton-navegacion {
+    -fx-background-color: transparent;
+    -fx-text-fill: #CFD8DC; /* Texto gris azulado más claro */
+    -fx-font-size: 1.1em;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 12px 18px; /* Un poco más de padding */
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-cursor: hand;
+    -fx-border-width: 0 0 0 3px; /* Borde izquierdo sutil para indicar selección */
+    -fx-border-color: transparent;
+}
+
+.panel-navegacion-profesor .boton-navegacion:hover {
+    -fx-background-color: #37474F; /* Gris oscuro al pasar el mouse */
+    -fx-text-fill: white;
+}
+
+.panel-navegacion-profesor .boton-navegacion:focused,
+.panel-navegacion-profesor .boton-navegacion:pressed {
+    -fx-background-color: #007bff; /* Azul primario al seleccionar */
+    -fx-text-fill: white;
+    -fx-border-color: #FFFFFF; /* Borde izquierdo blanco al seleccionar */
+}
+
+.panel-navegacion-profesor .boton-cerrar-sesion {
+    -fx-background-color: #D32F2F; /* Rojo oscuro para cerrar sesión */
+    -fx-text-fill: white;
+    -fx-font-size: 1.1em;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 12px 18px;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.panel-navegacion-profesor .boton-cerrar-sesion:hover {
+    -fx-background-color: #B71C1C; /* Rojo más oscuro al pasar el mouse */
+}
+
+/* Panel de Contenido Central del Profesor */
+.panel-contenido-profesor {
+    -fx-background-color: #FFFFFF; /* Fondo blanco */
+    -fx-padding: 30px; /* Más padding */
+}
+
+.titulo-seccion-profesor {
+    -fx-font-size: 2.2em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1A237E; /* Azul índigo oscuro para títulos */
+    -fx-padding-bottom: 18px;
+    -fx-border-color: transparent transparent #CFD8DC transparent; /* Línea inferior sutil */
+    -fx-border-width: 2px;
+}
+
+.texto-bienvenida-profesor {
+    -fx-font-size: 1.25em;
+    -fx-text-fill: #37474F; /* Gris oscuro */
+    -fx-text-alignment: center;
+}
+
+/* Estilos para elementos dentro de las vistas cargadas (ej. tablas, formularios) */
+.form-label-profesor {
+    -fx-font-size: 1em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #455A64;
+}
+
+.form-textfield-profesor, .form-combobox-profesor, .form-datepicker-profesor {
+    -fx-pref-height: 38px;
+    -fx-font-size: 1em;
+    -fx-border-color: #B0BEC5;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.form-textfield-profesor:focused, .form-combobox-profesor:focused, .form-datepicker-profesor:focused {
+    -fx-border-color: #1A237E; /* Azul índigo al enfocar */
+    -fx-effect: dropshadow(gaussian, #1A237E, 4, 0.1, 0, 0);
+}
+
+.button-primary-profesor {
+    -fx-background-color: #1A237E; /* Azul índigo */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 4px;
+}
+.button-primary-profesor:hover {
+    -fx-background-color: #283593;
+}
+
+.button-secondary-profesor {
+    -fx-background-color: #546E7A; /* Gris azulado */
+    -fx-text-fill: white;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 4px;
+}
+.button-secondary-profesor:hover {
+    -fx-background-color: #455A64;
+}
+
+Separator {
+    -fx-background-color: #B0BEC5;
+    -fx-min-height: 1px;
+    -fx-pref-height: 1px;
+    -fx-max-height: 1px;
+}

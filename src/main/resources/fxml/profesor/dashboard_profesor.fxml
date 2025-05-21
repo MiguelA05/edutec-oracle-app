@@ -1,14 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-
-            prefHeight="400.0" prefWidth="600.0">
-
-</AnchorPane>
+<BorderPane prefHeight="768.0" prefWidth="1366.0" stylesheets="@../../css/profesor/dashboard_profesor.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.uniquindio.ui.controller.profesor.DashboardProfesorController">
+    <left>
+        <VBox fx:id="panelNavegacionProfesor" prefWidth="260.0" styleClass="panel-navegacion-profesor" spacing="10">
+            <padding>
+                <Insets top="20.0" left="10" right="10" bottom="20"/>
+            </padding>
+            <children>
+                <VBox alignment="CENTER" spacing="10" VBox.vgrow="NEVER">
+                    <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
+                        <image>
+                            <Image url="https://placehold.co/100x100/2c3e50/white?text=Profesor" />
+                        </image>
+                    </ImageView>
+                    <Label fx:id="lblNombreProfesor" styleClass="nombre-usuario" text="Nombre del Profesor" wrapText="true"/>
+                    <Label fx:id="lblCorreoProfesor" styleClass="correo-usuario" text="correo@profesor.com" wrapText="true"/>
+                </VBox>
+                <Separator prefWidth="200.0" />
+                <Button fx:id="btnInicioProfesor" onAction="#handleInicioProfesor" styleClass="boton-navegacion" text="Inicio" prefWidth="Infinity"/>
+                <Button fx:id="btnGestionCursos" onAction="#handleGestionCursos" styleClass="boton-navegacion" text="Gestión de Cursos" prefWidth="Infinity"/>
+                <Button fx:id="btnGestionExamenes" onAction="#handleGestionExamenes" styleClass="boton-navegacion" text="Crear/Editar Examen" prefWidth="Infinity"/>
+                <Button fx:id="btnBancoPreguntas" onAction="#handleBancoPreguntas" styleClass="boton-navegacion" text="Banco de Preguntas" prefWidth="Infinity"/>
+                <Button fx:id="btnGestionPreguntas" onAction="#handleGestionPreguntas" styleClass="boton-navegacion" text="Gestión de Preguntas" prefWidth="Infinity"/>
+                <Button fx:id="btnEstadisticas" onAction="#handleEstadisticas" styleClass="boton-navegacion" text="Estadísticas y Reportes" prefWidth="Infinity"/>
+                <Button fx:id="btnHorariosProfesor" onAction="#handleHorariosProfesor" styleClass="boton-navegacion" text="Mis Horarios" prefWidth="Infinity"/>
+                <VBox VBox.vgrow="ALWAYS"/>
+                <Separator prefWidth="200.0" />
+                <Button fx:id="btnCerrarSesionProfesor" onAction="#handleCerrarSesionProfesor" styleClass="boton-cerrar-sesion" text="Cerrar Sesión" prefWidth="Infinity"/>
+            </children>
+        </VBox>
+    </left>
+    <center>
+        <AnchorPane fx:id="panelContenidoProfesor" styleClass="panel-contenido-profesor" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            <Label styleClass="titulo-seccion-profesor" text="Bienvenido al Panel de Profesor" AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="20.0">
+                <font>
+                    <Font name="System Bold" size="24.0" />
+                </font>
+            </Label>
+            <VBox alignment="CENTER" spacing="20" AnchorPane.topAnchor="80.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.bottomAnchor="20.0">
+                <Label styleClass="texto-bienvenida-profesor" text="Utilice el menú lateral para gestionar sus cursos, exámenes y preguntas."/>
+                <ImageView fitHeight="200.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" opacity="0.6">
+                    <image>
+                        <Image url="https://placehold.co/300x200/ecf0f1/2c3e50?text=EduTec+Profesor" />
+                    </image>
+                </ImageView>
+            </VBox>
+        </AnchorPane>
+    </center>
+</BorderPane>
