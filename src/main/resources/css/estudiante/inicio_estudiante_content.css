@@ -1,0 +1,69 @@
+.inicio-content-pane {
+    -fx-background-color: #FFFFFF; /* Fondo blanco para el contenido de inicio */
+    -fx-padding: 20px;
+}
+
+.titulo-bienvenida {
+    -fx-font-size: 2.2em; /* 26px o 35px */
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50; /* Azul oscuro */
+    -fx-padding-bottom: 20px;
+    -fx-text-alignment: center;
+}
+
+.info-card {
+    -fx-background-color: #F8F9FA; /* Un gris muy claro para las tarjetas */
+    -fx-padding: 20px;
+    -fx-spacing: 10px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.3, 0, 3);
+    -fx-pref-width: 280px; /* Ancho preferido para cada tarjeta */
+    -fx-alignment: TOP_CENTER;
+}
+
+.info-card ImageView {
+    -fx-opacity: 0.8;
+}
+
+.card-titulo {
+    -fx-font-size: 1.4em; /* 17px o 22px */
+    -fx-font-weight: bold;
+    -fx-text-fill: #34495E; /* Azul/gris oscuro */
+}
+
+.card-contenido {
+    -fx-font-size: 1em; /* 12px o 16px */
+    -fx-text-fill: #555555;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+    -fx-min-height: 50px; /* Para asegurar algo de espacio vertical */
+}
+
+.card-boton {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-font-size: 0.95em;
+    -fx-padding: 8px 15px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.card-boton:hover {
+    -fx-background-color: #0056b3;
+}
+
+.texto-motivacional {
+    -fx-font-size: 1.1em;
+    -fx-text-fill: #7f8c8d; /* Gris */
+    -fx-font-style: italic;
+    -fx-text-alignment: center;
+    -fx-padding: 20px;
+}
+
+Separator {
+    -fx-background-color: #E0E0E0;
+    -fx-min-height: 1px;
+    -fx-pref-height: 1px;
+    -fx-max-height: 1px;
+}
