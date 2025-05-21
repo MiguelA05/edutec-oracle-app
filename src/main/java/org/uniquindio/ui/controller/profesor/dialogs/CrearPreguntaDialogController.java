@@ -1,11 +1,8 @@
-package org.uniquindio.ui.controller.profesor;
+package org.uniquindio.ui.controller.profesor.dialogs;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -24,7 +21,6 @@ import org.uniquindio.model.entity.usuario.Profesor;
 
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;

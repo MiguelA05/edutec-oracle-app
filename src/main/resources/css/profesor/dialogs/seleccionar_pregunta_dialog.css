@@ -1,0 +1,110 @@
+.form-container-seleccion-dialog {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 20px;
+}
+
+.titulo-dialogo-seleccion {
+    -fx-font-size: 1.6em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-alignment: center;
+    -fx-padding: 10px;
+}
+
+.filtros-pane {
+    -fx-padding: 10px;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-color: #F8F9FA;
+}
+
+.form-label-dialog { /* Reutilizando de crear_pregunta_dialog.css si es similar */
+    -fx-font-size: 0.95em;
+    -fx-text-fill: #4A4A4A;
+    -fx-padding: 5px 0 0 0;
+}
+
+.form-container-seleccion-dialog .text-field,
+.form-container-seleccion-dialog .combo-box {
+    -fx-pref-height: 35px;
+    -fx-font-size: 0.95em;
+    -fx-border-color: #BDC3C7;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.form-container-seleccion-dialog .text-field:focused,
+.form-container-seleccion-dialog .combo-box:focused {
+    -fx-border-color: #3498DB;
+    -fx-effect: dropshadow(gaussian, #3498DB, 3, 0.1, 0, 0);
+}
+
+.button-accion-dialog { /* Reutilizando */
+    -fx-background-color: #27AE60;
+    -fx-text-fill: white;
+    -fx-font-size: 0.9em;
+    -fx-padding: 6px 12px;
+}
+.button-accion-dialog:hover {
+    -fx-background-color: #229954;
+}
+
+.table-view {
+    -fx-border-color: #D5D8DC;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #F1F4F6;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #2C3E50;
+    -fx-font-weight: bold;
+    -fx-padding: 8px;
+}
+
+/* Para centrar el CheckBox en la columna */
+.table-view .table-cell {
+    -fx-alignment: CENTER_LEFT; /* Alineación por defecto */
+    -fx-padding: 5px;
+}
+.table-view .table-column:first-child .table-cell { /* Para la columna del CheckBox */
+    -fx-alignment: CENTER;
+}
+
+.table-view .text-field-table-cell { /* Para la edición del porcentaje */
+    -fx-padding: 1px; /* Ajuste fino */
+}
+
+
+.botones-dialogo { /* Reutilizando */
+    -fx-background-color: #F4F6F7;
+    -fx-border-color: #EAECEE transparent transparent transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 15px;
+}
+
+.button-guardar-dialog { /* Reutilizando */
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 1em;
+    -fx-padding: 8px 18px;
+}
+.button-guardar-dialog:hover {
+    -fx-background-color: #0056b3;
+}
+
+.button-cancelar-dialog { /* Reutilizando */
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 1em;
+    -fx-padding: 8px 18px;
+}
+.button-cancelar-dialog:hover {
+    -fx-background-color: #545b62;
+}

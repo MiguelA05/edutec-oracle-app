@@ -5,14 +5,26 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 // FXMLLoader, Parent, Scene, Modality, Stage for dialogs/new windows if needed for question management
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.uniquindio.model.dto.PreguntaExamenDTO;
+import org.uniquindio.model.entity.academico.Contenido;
 import org.uniquindio.model.entity.academico.Curso;
 import org.uniquindio.model.entity.evaluacion.Examen; // Corrected import
 import org.uniquindio.model.entity.catalogo.Categoria; // Assuming Categoria is in .catalogo
+import org.uniquindio.model.entity.evaluacion.Pregunta;
 import org.uniquindio.model.entity.usuario.Profesor;
+import org.uniquindio.ui.controller.profesor.dialogs.CrearPreguntaDialogController;
+import org.uniquindio.ui.controller.profesor.dialogs.SeleccionarPreguntaDialogController;
+import org.uniquindio.model.dto.PreguntaSeleccionDTO;
+import org.uniquindio.model.dto.PreguntaExamenDTO; // Tu DTO para la tabla del examen
+import java.util.List;
 
 // Importa tus clases de Repositorio que llamarán a PL/SQL
 // import org.uniquindio.repository.impl.CursoRepositoryImpl;
@@ -21,9 +33,9 @@ import org.uniquindio.model.entity.usuario.Profesor;
 // import org.uniquindio.repository.impl.PreguntaRepositoryImpl;
 
 // import java.io.IOException; // If opening new FXMLs for question management
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -184,12 +196,112 @@ public class CrearEditarExamenController implements Initializable {
 
     @FXML
     private void handleAnadirPreguntaExistente(ActionEvent event) {
-        mostrarAlerta(Alert.AlertType.INFORMATION, "Función no implementada", "Añadir pregunta existente aún no está implementado.");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/profesor/dialogs/seleccionar_pregunta_dialog.fxml"));
+            Parent parent = loader.load();
+
+            SeleccionarPreguntaDialogController dialogController = loader.getController();
+            // Pasar el profesor y el contexto del curso/contenido del examen actual para filtrar
+            Contenido contenidoDelExamen = null;
+            // if (comboCurso.getValue() != null) {
+            //    // Lógica para obtener el objeto Contenido principal del curso seleccionado,
+            //    // ya que las preguntas se asocian a un ContenidoId.
+            //    // Esto es crucial para que el diálogo filtre por el tema correcto.
+            //    // contenidoDelExamen = obtenerContenidoPrincipalDelCurso(comboCurso.getValue());
+            // }
+            dialogController.setProfesorYContexto(this.profesorLogueado, contenidoDelExamen);
+
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Seleccionar Preguntas del Banco");
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            // dialogStage.initOwner(((Node)event.getSource()).getScene().getWindow());
+            Scene scene = new Scene(parent);
+            dialogStage.setScene(scene);
+
+            dialogController.setDialogStage(dialogStage);
+
+            dialogStage.showAndWait(); // Mostrar el diálogo y esperar
+
+            List<PreguntaSeleccionDTO> preguntasAnadidas = dialogController.getPreguntasSeleccionadas();
+            if (preguntasAnadidas != null && !preguntasAnadidas.isEmpty()) {
+                for (PreguntaSeleccionDTO pSeleccionada : preguntasAnadidas) {
+                    // Convertir PreguntaSeleccionDTO a PreguntaExamenDTO (el que usa tu tabla principal)
+                    PreguntaExamenDTO nuevaPreguntaParaExamen = new PreguntaExamenDTO(
+                            pSeleccionada.getIdPregunta(),
+                            pSeleccionada.getTextoPregunta(),
+                            pSeleccionada.getTipoPreguntaNombre(), // O el ID si lo necesitas
+                            pSeleccionada.getPorcentajeEnExamen()
+                    );
+                    // Evitar duplicados si la pregunta ya está en la lista del examen
+                    boolean existe = false;
+                    for(PreguntaExamenDTO existente : preguntasDelExamenList){
+                        if(existente.getIdPregunta() == nuevaPreguntaParaExamen.getIdPregunta()){
+                            existe = true;
+                            break;
+                        }
+                    }
+                    if(!existe){
+                        preguntasDelExamenList.add(nuevaPreguntaParaExamen);
+                    } else {
+                        System.out.println("Pregunta con ID " + nuevaPreguntaParaExamen.getIdPregunta() + " ya existe en el examen.");
+                    }
+                }
+                actualizarTotalPorcentaje();
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Preguntas Añadidas", preguntasAnadidas.size() + " pregunta(s) seleccionada(s) y añadida(s) al examen.");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo abrir el diálogo de selección de pregunta.");
+        }
     }
 
     @FXML
     private void handleCrearNuevaPregunta(ActionEvent event) {
-        mostrarAlerta(Alert.AlertType.INFORMATION, "Función no implementada", "Crear nueva pregunta aún no está implementado.");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/profesor/dialogs/crear_pregunta_dialog.fxml"));
+            Parent parent = loader.load();
+
+            CrearPreguntaDialogController dialogController = loader.getController();
+            dialogController.setProfesor(this.profesorLogueado); // Pasar el profesor logueado
+            // Si necesitas pasar el tema/contenido del examen actual para preseleccionar el combo:
+            // if (comboCurso.getValue() != null) {
+            //    // Necesitarías una forma de obtener el ContenidoId del Curso o un objeto Contenido
+            //    // dialogController.setContenidoPredeterminado(obtenerContenidoDelCursoSeleccionado());
+            // }
+
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Crear Nueva Pregunta");
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            // dialogStage.initOwner(((Node)event.getSource()).getScene().getWindow()); // Opcional para centrar respecto a la ventana padre
+            Scene scene = new Scene(parent);
+            dialogStage.setScene(scene);
+
+            dialogController.setDialogStage(dialogStage); // Pasar el stage al controlador del diálogo
+
+            dialogStage.showAndWait(); // Mostrar el diálogo y esperar
+
+            Pregunta preguntaCreada = dialogController.getPreguntaCreada();
+            if (preguntaCreada != null) {
+                // TODO: Añadir la preguntaCreada (o un DTO) a preguntasDelExamenList
+                // Esto requiere que el ID de la pregunta ya esté asignado (devuelto por PL/SQL)
+                // PreguntaExamenDTO nuevaPreguntaDTO = new PreguntaExamenDTO(
+                //        (long) preguntaCreada.getIdPregunta(),
+                //        preguntaCreada.getTexto(),
+                //        comboTipoPregunta.getValue() != null ? comboTipoPregunta.getValue().getNombre() : "Desconocido", // Obtener nombre del tipo
+                //        preguntaCreada.getPorcentaje() != null ? preguntaCreada.getPorcentaje().doubleValue() : 10.0
+                // );
+                // preguntasDelExamenList.add(nuevaPreguntaDTO);
+                // actualizarTotalPorcentaje();
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Pregunta Añadida", "La pregunta '" + preguntaCreada.getTexto().substring(0, Math.min(preguntaCreada.getTexto().length(), 30)) + "...' se ha creado y añadido (simulado).");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo abrir el diálogo de creación de pregunta.");
+        }
     }
 
     private void actualizarTotalPorcentaje() {

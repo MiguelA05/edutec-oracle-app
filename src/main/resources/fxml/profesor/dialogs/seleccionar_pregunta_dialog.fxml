@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory?>
+
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.RowConstraints?>
+<BorderPane prefWidth="800.0" prefHeight="600.0" stylesheets="@../../../css/profesor/dialogs/seleccionar_pregunta_dialog.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.uniquindio.ui.controller.profesor.dialogs.SeleccionarPreguntaDialogController">
+    <top>
+        <Label text="Seleccionar Preguntas Existentes" styleClass="titulo-dialogo-seleccion" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+            </padding>
+            <font>
+                <Font name="System Bold" size="18.0" />
+            </font>
+        </Label>
+    </top>
+    <center>
+        <VBox spacing="15.0" styleClass="form-container-seleccion-dialog">
+            <padding>
+                <Insets bottom="15.0" left="20.0" right="20.0" top="10.0" />
+            </padding>
+            <children>
+                <GridPane hgap="10.0" vgap="10.0" styleClass="filtros-pane">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="120.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="250.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="120.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="250.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                    <children>
+                        <Label text="Texto a buscar:" styleClass="form-label-dialog" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                        <TextField fx:id="txtBusquedaTexto" promptText="Palabras clave en la pregunta" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                        <Label text="Tipo de Pregunta:" styleClass="form-label-dialog" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                        <ComboBox fx:id="comboFiltroTipoPregunta" promptText="Todos los tipos" prefWidth="250.0" GridPane.columnIndex="3" GridPane.rowIndex="0" />
+
+                        <Label text="Nivel:" styleClass="form-label-dialog" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                        <ComboBox fx:id="comboFiltroNivel" promptText="Todos los niveles" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                        <Label text="Tema/Contenido:" styleClass="form-label-dialog" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <ComboBox fx:id="comboFiltroContenido" promptText="Todos los temas" prefWidth="250.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                    </children>
+                    <VBox.margin>
+                        <Insets bottom="10.0" />
+                    </VBox.margin>
+                </GridPane>
+                <Button fx:id="btnBuscarPreguntas" text="Buscar Preguntas" onAction="#handleBuscarPreguntas" styleClass="button-accion-dialog"/>
+
+                <TableView fx:id="tablaPreguntasDisponibles" prefHeight="300.0" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colSeleccionar" prefWidth="50.0" style="-fx-alignment: CENTER;">
+                        </TableColumn>
+                        <TableColumn fx:id="colTextoPreguntaDisponible" prefWidth="350.0" text="Texto de la Pregunta" />
+                        <TableColumn fx:id="colTipoPreguntaDisponible" prefWidth="150.0" text="Tipo" />
+                        <TableColumn fx:id="colNivelDisponible" prefWidth="100.0" text="Nivel" />
+                        <TableColumn fx:id="colPorcentajeExamen" prefWidth="120.0" text="Porcentaje (%)" />
+                    </columns>
+                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                </TableView>
+            </children>
+        </VBox>
+    </center>
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" spacing="15.0" styleClass="botones-dialogo" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+            </padding>
+            <children>
+                <Button fx:id="btnAnadirSeleccionadas" text="Añadir Seleccionadas" onAction="#handleAnadirSeleccionadas" styleClass="button-guardar-dialog" />
+                <Button fx:id="btnCancelarSeleccion" text="Cancelar" onAction="#handleCancelarSeleccion" styleClass="button-cancelar-dialog" />
+            </children>
+        </HBox>
+    </bottom>
+</BorderPane>
