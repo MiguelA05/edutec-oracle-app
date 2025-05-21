@@ -1,0 +1,107 @@
+.container-banco {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 20px;
+}
+
+.titulo-vista-banco {
+    -fx-font-size: 1.8em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50; /* Azul oscuro/gris */
+    -fx-padding: 10px;
+}
+
+.filtros-pane-banco {
+    -fx-padding: 15px;
+    -fx-border-color: #DEE2E6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-color: #F8F9FA;
+}
+
+.form-label-banco {
+    -fx-font-size: 0.95em;
+    -fx-text-fill: #495057;
+    -fx-padding: 5px 0 0 0;
+}
+
+.container-banco .text-field,
+.container-banco .combo-box {
+    -fx-pref-height: 35px;
+    -fx-font-size: 0.95em;
+    -fx-border-color: #CED4DA;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.container-banco .text-field:focused,
+.container-banco .combo-box:focused {
+    -fx-border-color: #007bff; /* Azul primario al enfocar */
+    -fx-effect: dropshadow(gaussian, #007bff, 3, 0.1, 0, 0);
+}
+
+.button-accion-banco {
+    -fx-background-color: #6C757D; /* Gris secundario */
+    -fx-text-fill: white;
+    -fx-font-size: 0.9em;
+    -fx-padding: 7px 15px;
+    -fx-background-radius: 4px;
+}
+.button-accion-banco:hover {
+    -fx-background-color: #5A6268;
+}
+
+.table-view {
+    -fx-border-color: #DEE2E6;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-selection-bar: #B8DAFF; /* Color de la fila seleccionada */
+    -fx-selection-bar-non-focused: #D6E9FF;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #E9ECEF; /* Fondo cabecera tabla */
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #212529; /* Texto oscuro cabecera */
+    -fx-font-weight: bold;
+    -fx-padding: 10px 8px; /* Más padding en cabecera */
+}
+
+.table-view .table-cell {
+    -fx-padding: 8px;
+    -fx-border-color: transparent #E9ECEF transparent transparent; /* Borde derecho sutil */
+    -fx-border-width: 0 1px 0 0;
+}
+
+.button-editar-tabla-banco {
+    -fx-background-color: #FFC107; /* Amarillo para editar */
+    -fx-text-fill: #212529;
+    -fx-font-size: 0.85em;
+    -fx-padding: 5px 10px;
+}
+.button-editar-tabla-banco:hover {
+    -fx-background-color: #E0A800;
+}
+
+.button-eliminar-tabla-banco {
+    -fx-background-color: #DC3545; /* Rojo para eliminar */
+    -fx-text-fill: white;
+    -fx-font-size: 0.85em;
+    -fx-padding: 5px 10px;
+}
+.button-eliminar-tabla-banco:hover {
+    -fx-background-color: #C82333;
+}
+
+.button-principal-banco {
+    -fx-background-color: #007bff; /* Azul primario */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 1.05em;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 5px;
+}
+.button-principal-banco:hover {
+    -fx-background-color: #0056b3;
+}
