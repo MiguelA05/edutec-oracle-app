@@ -1,9 +1,13 @@
 package org.uniquindio.model.dto;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.uniquindio.model.entity.evaluacion.OpcionPregunta; // Asumiendo que OpcionPregunta es tu entidad para las opciones
 
 import java.util.List;
 
+@Getter
+@Setter
 public class PreguntaPresentacionDTO {
     private int preguntaExamenEstudianteId; // ID de la tabla PREGUNTAEXAMENESTUDIANTE (clave para registrar la respuesta)
     private String textoPregunta;
@@ -19,56 +23,6 @@ public class PreguntaPresentacionDTO {
         this.tipoPreguntaNombre = tipoPreguntaNombre;
         this.tipoPreguntaId = tipoPreguntaId;
         this.opciones = opciones;
-        this.tiempoSugerido = tiempoSugerido;
-    }
-
-    // Getters
-    public int getPreguntaExamenEstudianteId() {
-        return preguntaExamenEstudianteId;
-    }
-
-    public String getTextoPregunta() {
-        return textoPregunta;
-    }
-
-    public String getTipoPreguntaNombre() {
-        return tipoPreguntaNombre;
-    }
-
-    public Integer getTipoPreguntaId() {
-        return tipoPreguntaId;
-    }
-
-    public List<OpcionPresentacionDTO> getOpciones() {
-        return opciones;
-    }
-
-    public String getTiempoSugerido() {
-        return tiempoSugerido;
-    }
-
-    // Setters (opcionales, dependiendo si el DTO es mutable después de la creación)
-    public void setPreguntaExamenEstudianteId(int preguntaExamenEstudianteId) {
-        this.preguntaExamenEstudianteId = preguntaExamenEstudianteId;
-    }
-
-    public void setTextoPregunta(String textoPregunta) {
-        this.textoPregunta = textoPregunta;
-    }
-
-    public void setTipoPreguntaNombre(String tipoPreguntaNombre) {
-        this.tipoPreguntaNombre = tipoPreguntaNombre;
-    }
-
-    public void setTipoPreguntaId(Integer tipoPreguntaId) {
-        this.tipoPreguntaId = tipoPreguntaId;
-    }
-
-    public void setOpciones(List<OpcionPresentacionDTO> opciones) {
-        this.opciones = opciones;
-    }
-
-    public void setTiempoSugerido(String tiempoSugerido) {
         this.tiempoSugerido = tiempoSugerido;
     }
 

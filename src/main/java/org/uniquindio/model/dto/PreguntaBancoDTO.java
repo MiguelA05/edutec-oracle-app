@@ -1,7 +1,12 @@
 package org.uniquindio.model.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
+@Getter
+@Setter
 public class PreguntaBancoDTO {
     private int idPregunta;
     private String texto;
@@ -26,16 +31,6 @@ public class PreguntaBancoDTO {
         this.nivelNombre = nivelNombre;
         this.visibilidadNombre = visibilidadNombre;
     }
-
-    // Getters (y Setters si son necesarios, aunque los DTOs suelen ser inmutables o solo con getters para mostrar)
-    public int getIdPregunta() { return idPregunta; }
-    public String getTexto() { return texto; }
-    public String getTiempo() { return tiempo; }
-    public BigDecimal getPorcentajeDefecto() { return porcentajeDefecto; }
-    public String getTipoPreguntaNombre() { return tipoPreguntaNombre; }
-    public String getContenidoNombre() { return contenidoNombre; }
-    public String getNivelNombre() { return nivelNombre; }
-    public String getVisibilidadNombre() { return visibilidadNombre; }
 
     // Si necesitas la entidad original para pasarla al diálogo de edición
     // public Pregunta getPreguntaOriginal() { return preguntaOriginal; }

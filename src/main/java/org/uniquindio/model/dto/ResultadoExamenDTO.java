@@ -3,8 +3,12 @@ package org.uniquindio.model.dto;
 import java.math.BigDecimal;
 import java.util.List;
 // Se importa el nuevo DTO
+import lombok.Getter;
+import lombok.Setter;
 import org.uniquindio.model.dto.DetalleRespuestaPreguntaDTO;
 
+@Getter
+@Setter
 public class ResultadoExamenDTO {
     private BigDecimal calificacionFinal;
     private int respuestasCorrectas;
@@ -40,82 +44,5 @@ public class ResultadoExamenDTO {
                               String mensajeFeedbackGeneral, String nombreExamen, String fechaPresentacion) {
         this(calificacionFinal, respuestasCorrectas, respuestasIncorrectas, preguntasRespondidas,
                 totalPreguntasExamen, mensajeFeedbackGeneral, nombreExamen, fechaPresentacion, null); // Llama al constructor principal con detalle null
-    }
-
-
-    // Getters
-    public BigDecimal getCalificacionFinal() {
-        return calificacionFinal;
-    }
-
-    public int getRespuestasCorrectas() {
-        return respuestasCorrectas;
-    }
-
-    public int getRespuestasIncorrectas() {
-        return respuestasIncorrectas;
-    }
-
-    public int getPreguntasRespondidas() {
-        return preguntasRespondidas;
-    }
-
-    public int getTotalPreguntasExamen() {
-        return totalPreguntasExamen;
-    }
-
-    public String getMensajeFeedbackGeneral() {
-        return mensajeFeedbackGeneral;
-    }
-
-    public String getNombreExamen() {
-        return nombreExamen;
-    }
-
-    public String getFechaPresentacion() {
-        return fechaPresentacion;
-    }
-
-    // Getter para la lista de detalles
-    public List<DetalleRespuestaPreguntaDTO> getDetalleRespuestas() {
-        return detalleRespuestas;
-    }
-
-    // Setters (si son necesarios)
-    public void setCalificacionFinal(BigDecimal calificacionFinal) {
-        this.calificacionFinal = calificacionFinal;
-    }
-
-    public void setRespuestasCorrectas(int respuestasCorrectas) {
-        this.respuestasCorrectas = respuestasCorrectas;
-    }
-
-    public void setRespuestasIncorrectas(int respuestasIncorrectas) {
-        this.respuestasIncorrectas = respuestasIncorrectas;
-    }
-
-    public void setPreguntasRespondidas(int preguntasRespondidas) {
-        this.preguntasRespondidas = preguntasRespondidas;
-    }
-
-    public void setTotalPreguntasExamen(int totalPreguntasExamen) {
-        this.totalPreguntasExamen = totalPreguntasExamen;
-    }
-
-    public void setMensajeFeedbackGeneral(String mensajeFeedbackGeneral) {
-        this.mensajeFeedbackGeneral = mensajeFeedbackGeneral;
-    }
-
-    public void setNombreExamen(String nombreExamen) {
-        this.nombreExamen = nombreExamen;
-    }
-
-    public void setFechaPresentacion(String fechaPresentacion) {
-        this.fechaPresentacion = fechaPresentacion;
-    }
-
-    // Setter para la lista de detalles
-    public void setDetalleRespuestas(List<DetalleRespuestaPreguntaDTO> detalleRespuestas) {
-        this.detalleRespuestas = detalleRespuestas;
     }
 }

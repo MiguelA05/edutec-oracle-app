@@ -1,0 +1,75 @@
+.container-examenes-disp {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 20px;
+}
+
+.titulo-vista-examenes-disp {
+    -fx-font-size: 1.8em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50; /* Azul oscuro/gris */
+    -fx-padding: 10px;
+}
+
+.label-filtro-examenes-disp {
+    -fx-font-size: 1em;
+    -fx-text-fill: #495057;
+    -fx-font-weight: bold;
+}
+
+.container-examenes-disp .combo-box {
+    -fx-pref-height: 35px;
+    -fx-font-size: 0.95em;
+    -fx-border-color: #CED4DA;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+.container-examenes-disp .combo-box:focused {
+    -fx-border-color: #007bff;
+}
+
+.button-accion-examenes-disp {
+    -fx-background-color: #17A2B8; /* Info Blue */
+    -fx-text-fill: white;
+    -fx-font-size: 0.9em;
+    -fx-padding: 7px 15px;
+    -fx-background-radius: 4px;
+    -fx-font-weight: bold;
+}
+.button-accion-examenes-disp:hover {
+    -fx-background-color: #138496;
+}
+
+
+.table-view {
+    -fx-border-color: #DEE2E6;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #E9ECEF;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #212529;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 8px;
+}
+
+.table-view .table-cell {
+    -fx-padding: 8px;
+    -fx-border-color: transparent #E9ECEF transparent transparent;
+    -fx-border-width: 0 1px 0 0;
+}
+
+.button-presentar-examen {
+    -fx-background-color: #28A745; /* Verde */
+    -fx-text-fill: white;
+    -fx-font-size: 0.9em;
+    -fx-font-weight: bold;
+    -fx-padding: 6px 12px;
+    -fx-background-radius: 4px;
+}
+.button-presentar-examen:hover {
+    -fx-background-color: #218838;
+}

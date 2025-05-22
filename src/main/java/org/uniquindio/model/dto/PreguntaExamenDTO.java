@@ -3,7 +3,6 @@ package org.uniquindio.model.dto;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
-
 public class PreguntaExamenDTO {
     private final SimpleLongProperty idPregunta;
     private final SimpleStringProperty textoPregunta;

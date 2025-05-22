@@ -29,9 +29,10 @@ public class Main extends Application {
         //FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/profesor/dialogs/seleccionar_pregunta_dialogs.fxml"));
         //FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/profesor/dashboard_profesor.fxml"));
         //FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/estudiante/inicio_profesor_content.fxml"));
+        //FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/estudiante/examenes_disponibles.fxml"));
         //FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/estudiante/resultados_examen.fxml"));
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/estudiante/presentacion_examen.fxml"));
-        //FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/comun/login.fxml"));
+        //FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/estudiante/presentacion_examen.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/comun/login.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("EduTec");
         stage.getIcons().add(new Image("/images/logo_edutec.png"));
