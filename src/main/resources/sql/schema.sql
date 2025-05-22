@@ -76,7 +76,7 @@ BEGIN
     drop_object('TABLE', 'Examen');
     drop_object('TABLE', 'OpcionPregunta');
     drop_object('TABLE', 'Pregunta');
-    drop_object('TABLE', 'DetalleUnidadHorario');
+    drop_object('TABLE', 'DetalleCursoHorario');
     drop_object('TABLE', 'DetalleEstudianteCurso');
     drop_object('TABLE', 'Contenido');
     drop_object('TABLE', 'Unidad');
@@ -314,36 +314,41 @@ CREATE TABLE DetalleEstudianteCurso (
                                         CONSTRAINT fk_detalle_curso FOREIGN KEY (curso_id) REFERENCES Curso(id_curso)
 ) TABLESPACE TS_ACADEMICO;
 
-CREATE TABLE DetalleUnidadHorario (
-                                      curso_id INTEGER NOT NULL,
-                                      horario_clase_id INTEGER NOT NULL,
-                                      CONSTRAINT pk_detalle_unidad_horario PRIMARY KEY (curso_id, horario_clase_id) USING INDEX TABLESPACE TS_INDICES,
-                                      CONSTRAINT fk_detalle_unidad FOREIGN KEY (curso_id) REFERENCES Curso(id_curso),
-                                      CONSTRAINT fk_detalle_horario FOREIGN KEY (horario_clase_id) REFERENCES Horario_Clase(id_horario)
+CREATE TABLE DetalleCursoHorario (
+                                     curso_id INTEGER NOT NULL,
+                                     horario_clase_id INTEGER NOT NULL,
+                                     CONSTRAINT pk_detalle_curso_horario PRIMARY KEY (curso_id, horario_clase_id) USING INDEX TABLESPACE TS_INDICES, -- Nombre de PK actualizado
+                                     CONSTRAINT fk_dch_curso FOREIGN KEY (curso_id) REFERENCES Curso(id_curso), -- Nombre de FK actualizado
+                                     CONSTRAINT fk_dch_horario FOREIGN KEY (horario_clase_id) REFERENCES Horario_Clase(id_horario) -- Nombre de FK actualizado
 ) TABLESPACE TS_ACADEMICO;
 
 -- === TABLESPACE: TS_EVALUACIONES ===
 CREATE TABLE Pregunta (
                           id_pregunta        INTEGER,
                           texto              VARCHAR2(300) NOT NULL,
-                          tiempo             VARCHAR2(100),
+                          tiempo_estimado    NUMBER,
                           porcentaje         NUMBER(5,2),
                           tipo_pregunta_id   INTEGER,
                           visibilidad_id     INTEGER,
                           nivel_id           INTEGER,
                           pregunta_padre     INTEGER,
                           contenido_id       INTEGER,
+                          creador_cedula_profesor NUMBER(10),
+                          fecha_creacion     DATE DEFAULT SYSDATE,
+                          fecha_modificacion  DATE,
+                          usuario_modificacion VARCHAR2(30),
                           CONSTRAINT pk_pregunta PRIMARY KEY (id_pregunta) USING INDEX TABLESPACE TS_INDICES,
                           CONSTRAINT fk_tipo_pregunta FOREIGN KEY (tipo_pregunta_id) REFERENCES TipoPregunta(id),
                           CONSTRAINT fk_visibilidad FOREIGN KEY (visibilidad_id) REFERENCES Visibilidad(id),
                           CONSTRAINT fk_nivel FOREIGN KEY (nivel_id) REFERENCES Nivel(id),
                           CONSTRAINT fk_pregunta_padre FOREIGN KEY (pregunta_padre) REFERENCES Pregunta(id_pregunta),
-                          CONSTRAINT fk_contenido FOREIGN KEY (contenido_id) REFERENCES Contenido(id_contenido)
+                          CONSTRAINT fk_contenido FOREIGN KEY (contenido_id) REFERENCES Contenido(id_contenido),
+                          CONSTRAINT fk_pregunta_profesor_creador FOREIGN KEY (creador_cedula_profesor) REFERENCES Profesor(cedula)
 ) TABLESPACE TS_EVALUACIONES;
 
 CREATE TABLE OpcionPregunta (
                                 id INTEGER,
-                                respuesta VARCHAR2(50) NOT NULL,
+                                respuesta VARCHAR2(255) NOT NULL,
                                 es_correcta CHAR(1) NOT NULL CHECK (es_correcta IN ('S', 'N')),
                                 pregunta_id INTEGER NOT NULL,
                                 CONSTRAINT pk_opcion_pregunta PRIMARY KEY (id) USING INDEX TABLESPACE TS_INDICES,
@@ -352,7 +357,8 @@ CREATE TABLE OpcionPregunta (
 
 CREATE TABLE Examen (
                         id INTEGER,
-                        tiempo INTEGER,
+                        nombre VARCHAR2(50) NOT NULL,
+                        tiempo NUMBER,
                         numero_preguntas NUMBER(10),
                         fecha DATE,
                         hora DATE,
@@ -383,8 +389,9 @@ CREATE TABLE PresentacionExamen (
                                     calificacion NUMBER(5,2),
                                     respuestas_correctas NUMBER(10),
                                     respuestas_incorrectas NUMBER(10),
-                                    tiempo INTEGER,
+                                    tiempo NUMBER,
                                     hora_inicio DATE,
+                                    hora_fin DATE,
                                     direccion_ip VARCHAR2(45),
                                     examen_id INTEGER,
                                     estudiante_cedula NUMBER(10),
@@ -395,7 +402,7 @@ CREATE TABLE PresentacionExamen (
 
 CREATE TABLE PreguntaExamenEstudiante (
                                           id INTEGER,
-                                          tiempo INTEGER,
+                                          tiempo NUMBER,
                                           presentacion_examen_id INTEGER,
                                           detalle_pregunta_examen_examen_id INTEGER,
                                           detalle_pregunta_examen_pregunta_id INTEGER,
@@ -406,7 +413,7 @@ CREATE TABLE PreguntaExamenEstudiante (
 ) TABLESPACE TS_HISTORICO;
 
 CREATE TABLE RespuestaPregunta (
-                                   id INTEGER,
+                                   id NUMBER,
                                    respuesta_dada VARCHAR2(100),
                                    opcion_pregunta_id INTEGER,
                                    preguntaExamenEstudiante_id INTEGER NOT NULL,

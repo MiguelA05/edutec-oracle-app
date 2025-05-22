@@ -7,11 +7,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class DetalleUnidadHorario {
+public class DetalleCursoHorario {
     private int cursoId;           // FK a Curso.id_curso
     private int horarioClaseId;    // FK a Horario_Clase.id_horario
 
-    public DetalleUnidadHorario(int cursoId, int horarioClaseId) {
+    public DetalleCursoHorario(int cursoId, int horarioClaseId) {
         this.cursoId = cursoId;
         this.horarioClaseId = horarioClaseId;
     }

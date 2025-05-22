@@ -174,7 +174,7 @@ public class CrearPreguntaDialogController implements Initializable {
 
         Pregunta nuevaPregunta = new Pregunta();
         nuevaPregunta.setTexto(txtTextoPregunta.getText().trim());
-        nuevaPregunta.setTiempo(txtTiempoEstimado.getText().trim().isEmpty() ? null : txtTiempoEstimado.getText().trim());
+        nuevaPregunta.setTiempoEstimado(txtTiempoEstimado.getText().trim().isEmpty() ? null : Double.valueOf(txtTiempoEstimado.getText().trim()));
         nuevaPregunta.setPorcentaje(BigDecimal.valueOf(spinnerPorcentajeDefecto.getValue()));
         nuevaPregunta.setTipoPreguntaId(comboTipoPregunta.getValue().getId()); // Asumiendo que TipoPregunta tiene getId()
         nuevaPregunta.setContenidoId(comboContenido.getValue().getIdContenido()); // Asumiendo que Contenido tiene getId_contenido()

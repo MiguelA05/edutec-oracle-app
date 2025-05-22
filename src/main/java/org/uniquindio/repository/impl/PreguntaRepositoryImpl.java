@@ -1,11 +1,9 @@
 package org.uniquindio.repository.impl;
 
 import org.uniquindio.model.dto.PreguntaBancoDTO;
-import org.uniquindio.model.entity.academico.*;
 import org.uniquindio.model.entity.evaluacion.OpcionPregunta;
 import org.uniquindio.model.entity.evaluacion.Pregunta;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +81,7 @@ public class PreguntaRepositoryImpl {
                     pregunta = new Pregunta(
                             rs.getInt("ID_PREGUNTA"),
                             rs.getString("TEXTO"),
-                            rs.getString("TIEMPO"),
+                            rs.getDouble("TIEMPO"),
                             rs.getBigDecimal("PORCENTAJE"),
                             rs.getObject("TIPO_PREGUNTA_ID", Integer.class),
                             rs.getObject("VISIBILIDAD_ID", Integer.class),
@@ -112,7 +110,7 @@ public class PreguntaRepositoryImpl {
              CallableStatement cstmt = conn.prepareCall(sql)) {
 
             cstmt.setString(1, pregunta.getTexto());
-            cstmt.setString(2, pregunta.getTiempo());
+            cstmt.setDouble(2, pregunta.getTiempoEstimado());
             cstmt.setBigDecimal(3, pregunta.getPorcentaje());
             cstmt.setObject(4, pregunta.getTipoPreguntaId(), Types.INTEGER);
             cstmt.setObject(5, pregunta.getVisibilidadId(), Types.INTEGER);

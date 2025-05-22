@@ -13,6 +13,7 @@ import java.util.Date;
 public class Examen {
     private int id;
     private Integer tiempo; // Tiempo en minutos, por ejemplo
+    private String nombre;
     private Integer numeroPreguntas;
     private Date fecha;
     private Date hora; // Similar a HorarioClase.hora_inicio
@@ -23,11 +24,12 @@ public class Examen {
     private Integer categoriaId; // FK
     private Integer cursoId; // FK
 
-    public Examen(int id, Integer tiempo, Integer numeroPreguntas, Date fecha, Date hora,
+    public Examen(int id, Integer tiempo, String nombre, Integer numeroPreguntas, Date fecha, Date hora,
                   BigDecimal calificacionMinAprobatoria, BigDecimal pesoCurso, String descripcion,
                   Integer creacionId, Integer categoriaId, Integer cursoId) {
         this.id = id;
         this.tiempo = tiempo;
+        this.nombre = nombre;
         this.numeroPreguntas = numeroPreguntas;
         this.fecha = fecha;
         this.hora = hora;
