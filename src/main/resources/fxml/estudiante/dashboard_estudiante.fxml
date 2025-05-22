@@ -22,7 +22,7 @@
                 <VBox alignment="CENTER" spacing="10" VBox.vgrow="NEVER">
                     <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
                         <image>
-                            <Image url="https://placehold.co/100x100/007bff/white?text=Perfil" />
+                            <Image url="@../../images/perfil.png" />
                         </image>
                     </ImageView>
                     <Label fx:id="lblNombreEstudiante" styleClass="nombre-estudiante" text="Nombre del Estudiante" wrapText="true"/>

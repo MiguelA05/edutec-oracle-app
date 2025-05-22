@@ -58,32 +58,67 @@ public class DashboardEstudianteController implements Initializable {
     public void setEstudiante(Estudiante estudiante) {
         this.estudianteLogueado = estudiante;
         if (estudiante != null) {
-            lblNombreEstudiante.setText(estudiante.getNombre());
-            lblCorreoEstudiante.setText(estudiante.getCorreo());
-            // Aquí podrías cargar datos iniciales o personalizar más la UI
+            lblNombreEstudiante.setText(estudiante.getNombre() != null ? estudiante.getNombre() : "Nombre no disponible");
+            lblCorreoEstudiante.setText(estudiante.getCorreo() != null ? estudiante.getCorreo() : "Correo no disponible");
         } else {
             lblNombreEstudiante.setText("Estudiante Desconocido");
             lblCorreoEstudiante.setText("");
-            // Manejar el caso de estudiante nulo si es necesario (ej. redirigir a login)
+        }
+        if (panelContenido.getChildren().isEmpty() || !(panelContenido.getChildren().get(0).getUserData() instanceof InicioEstudianteContentController)) {
+            handleInicio(null); // Carga la vista de inicio si no está o si no es la de inicio
+        } else {
+            // Si ya está la vista de inicio, intenta actualizarla
+            try {
+                Object currentController = panelContenido.getChildren().get(0).getUserData(); // Asumiendo que guardas el controller en userData
+                if (currentController instanceof InicioEstudianteContentController) {
+                    ((InicioEstudianteContentController) currentController).initDataEstudiante(estudianteLogueado, this);
+                } else { // Si no es la de inicio, recárgala
+                    handleInicio(null);
+                }
+            } catch (Exception e) {
+                // Si falla la actualización, recargar.
+                handleInicio(null);
+            }
         }
     }
 
     @FXML
     private void handleInicio(ActionEvent event) {
-        // Cargar una vista de bienvenida o resumen en el panelContenido
+        String fxmlPath = "/fxml/estudiante/inicio_estudiante_content.fxml";
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/estudiante/inicio_estudiante_content.fxml")); // Debes crear este FXML
+            URL resourceUrl = getClass().getResource(fxmlPath);
+            if (resourceUrl == null) {
+                System.err.println("Error: No se pudo encontrar el archivo FXML: " + fxmlPath);
+                Label lblError = new Label("No se pudo cargar la vista de inicio (archivo no encontrado).");
+                lblError.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+                panelContenido.getChildren().setAll(lblError);
+                return;
+            }
+
+            FXMLLoader loader = new FXMLLoader(resourceUrl);
             Node vistaInicio = loader.load();
-            // Si el controlador de inicio_estudiante_content.fxml necesita datos del estudiante:
-            // Object controller = loader.getController();
-            // if (controller instanceof InicioEstudianteContentController && estudianteLogueado != null) {
-            //    ((InicioEstudianteContentController) controller).initData(estudianteLogueado);
-            // }
+            Object controller = loader.getController();
+            // Guardar el controlador en el UserData del nodo raíz de la vista cargada
+            // para poder acceder a él si necesitamos actualizarlo (ej. en setEstudiante).
+            vistaInicio.setUserData(controller);
+
+
+            if (controller instanceof InicioEstudianteContentController && estudianteLogueado != null) {
+                ((InicioEstudianteContentController) controller).initDataEstudiante(estudianteLogueado, this);
+            }
             panelContenido.getChildren().setAll(vistaInicio);
         } catch (IOException e) {
-            System.err.println("Error al cargar la vista de inicio del estudiante: " + e.getMessage());
+            System.err.println("Error al cargar la vista de inicio del estudiante (" + fxmlPath + "): " + e.getMessage());
             e.printStackTrace();
-            // Mostrar un mensaje de error en la UI si es necesario
+            Label lblError = new Label("Error al cargar la vista de inicio.");
+            lblError.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+            panelContenido.getChildren().setAll(lblError);
+        } catch (IllegalStateException e) {
+            System.err.println("Error de estado ilegal al cargar FXML (" + fxmlPath + "): " + e.getMessage());
+            e.printStackTrace();
+            Label lblError = new Label("Error interno al cargar la vista de inicio.");
+            lblError.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+            panelContenido.getChildren().setAll(lblError);
         }
     }
 
@@ -109,21 +144,24 @@ public class DashboardEstudianteController implements Initializable {
 
     private void cargarVista(String fxmlPath) {
         try {
-            // Es importante usar una ruta absoluta desde la raíz de resources si los FXML están allí
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Node vista = loader.load();
+            URL resourceUrl = getClass().getResource(fxmlPath);
+            if (resourceUrl == null) {
+                System.err.println("Error: No se pudo encontrar el archivo FXML: " + fxmlPath);
+                Label lblError = new Label("No se pudo cargar la sección (archivo '" + fxmlPath.substring(fxmlPath.lastIndexOf("/") + 1) + "' no encontrado).");
+                lblError.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+                panelContenido.getChildren().setAll(lblError);
+                return;
+            }
 
-            // Si el controlador de la vista cargada necesita el objeto Estudiante:
+            FXMLLoader loader = new FXMLLoader(resourceUrl);
+            Node vista = loader.load();
             Object controller = loader.getController();
-            if (estudianteLogueado != null) {
-                // Puedes usar una interfaz común para pasar datos o reflexión específica
-                // Ejemplo con una interfaz común InitData<T>
-                // if (controller instanceof InitData) {
-                //    ((InitData<Estudiante>) controller).initData(estudianteLogueado);
-                // }
-                // O con reflexión si conoces el método (menos robusto):
+            vista.setUserData(controller);
+
+            if (estudianteLogueado != null && controller != null) {
                 try {
                     controller.getClass().getMethod("initDataEstudiante", Estudiante.class).invoke(controller, estudianteLogueado);
+                    System.out.println("Datos (Estudiante y Dashboard) pasados a " + controller.getClass().getSimpleName());
                 } catch (NoSuchMethodException nsme) {
                     // El controlador no tiene el método initDataEstudiante, puede que no lo necesite.
                     System.out.println("Nota: El controlador para " + fxmlPath + " no tiene initDataEstudiante(Estudiante).");
@@ -138,7 +176,6 @@ public class DashboardEstudianteController implements Initializable {
         } catch (IOException e) {
             System.err.println("Error al cargar la vista: " + fxmlPath + " - " + e.getMessage());
             e.printStackTrace();
-            // Aquí podrías mostrar un Label de error en el panelContenido
             Label lblError = new Label("No se pudo cargar la sección: " + fxmlPath.substring(fxmlPath.lastIndexOf("/") + 1));
             lblError.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
             panelContenido.getChildren().setAll(lblError);

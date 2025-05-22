@@ -2,20 +2,17 @@ package org.uniquindio.ui.controller.estudiante;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import org.uniquindio.model.entity.usuario.Estudiante;
+import org.uniquindio.repository.impl.CursoRepositoryImpl;
+import org.uniquindio.repository.impl.ExamenRepositoryImpl;
 // Importar clases de repositorio si es necesario para obtener datos resumidos
 // import org.uniquindio.repository.impl.ExamenRepositoryImpl; // Ejemplo
 
-import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 public class InicioEstudianteContentController implements Initializable {
@@ -84,29 +81,25 @@ public class InicioEstudianteContentController implements Initializable {
 
         // TODO: Implementar lógica para cargar datos reales desde la base de datos (usando PL/SQL vía repositorios)
         // Ejemplo conceptual (deberás crear los métodos en tus repositorios y funciones PL/SQL):
-        // ExamenRepositoryImpl examenRepo = new ExamenRepositoryImpl();
-        // CursoRepositoryImpl cursoRepo = new CursoRepositoryImpl();
-        // try {
-        //     int numProximosExamenes = examenRepo.contarProximosExamenes(estudiante.getCedula());
-        //     lblProximosExamenesInfo.setText("Tienes " + numProximosExamenes + " exámenes próximamente.");
-        //
-        //     int numCursos = cursoRepo.contarCursosActivosEstudiante(estudiante.getCedula());
-        //     lblCursosActualesInfo.setText("Estás inscrito en " + numCursos + " cursos actualmente.");
-        //
-        //     String ultimoResultado = examenRepo.obtenerUltimoResultado(estudiante.getCedula());
-        //     lblUltimosResultadosInfo.setText(ultimoResultado.isEmpty() ? "Aún no tienes resultados." : "Último examen: " + ultimoResultado);
-        //
-        // } catch (SQLException e) {
-        //     System.err.println("Error al cargar datos de resumen para el estudiante: " + e.getMessage());
-        //     lblProximosExamenesInfo.setText("Error al cargar datos.");
-        //     lblCursosActualesInfo.setText("Error al cargar datos.");
-        //     lblUltimosResultadosInfo.setText("Error al cargar datos.");
-        // }
+        ExamenRepositoryImpl examenRepo = new ExamenRepositoryImpl();
+        CursoRepositoryImpl cursoRepo = new CursoRepositoryImpl();
+        try {
+             int numProximosExamenes = examenRepo.contarProximosExamenesEstudiante(estudiante.getCedula());
+             lblProximosExamenesInfo.setText("Tienes " + numProximosExamenes + " exámenes próximamente.");
 
-        // Datos de placeholder mientras implementas la lógica real:
-        lblProximosExamenesInfo.setText("Tienes 2 exámenes programados esta semana.");
-        lblCursosActualesInfo.setText("Estás inscrito en 5 cursos actualmente.");
-        lblUltimosResultadosInfo.setText("Última calificación: 4.5 en Matemáticas.");
+             int numCursos = cursoRepo.contarCursosActivosPorEstudiante(estudiante.getCedula());
+             lblCursosActualesInfo.setText("Estás inscrito en " + numCursos + " cursos actualmente.");
+
+             String ultimoResultado = examenRepo.obtenerDescripcionUltimoResultadoEstudiante(estudiante.getCedula());
+             lblUltimosResultadosInfo.setText(ultimoResultado.isEmpty() ? "Aún no tienes resultados." : "Último examen: " + ultimoResultado);
+
+         } catch (SQLException e) {
+             System.err.println("Error al cargar datos de resumen para el estudiante: " + e.getMessage());
+             lblProximosExamenesInfo.setText("Error al cargar datos.");
+             lblCursosActualesInfo.setText("Error al cargar datos.");
+             lblUltimosResultadosInfo.setText("Error al cargar datos.");
+         }
+
     }
 
     // Métodos para manejar los clics en los botones de las tarjetas
