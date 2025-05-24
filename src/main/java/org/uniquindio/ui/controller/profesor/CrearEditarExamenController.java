@@ -7,12 +7,14 @@ import javafx.fxml.FXML;
 // FXMLLoader, Parent, Scene, Modality, Stage for dialogs/new windows if needed for question management
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import org.uniquindio.model.dto.PreguntaExamenDTO;
 import org.uniquindio.model.entity.academico.Contenido;
 import org.uniquindio.model.entity.academico.Curso;
@@ -20,14 +22,17 @@ import org.uniquindio.model.entity.evaluacion.Examen; // Corrected import
 import org.uniquindio.model.entity.catalogo.Categoria; // Assuming Categoria is in .catalogo
 import org.uniquindio.model.entity.evaluacion.Pregunta;
 import org.uniquindio.model.entity.usuario.Profesor;
+import org.uniquindio.repository.impl.CursoRepositoryImpl;
+import org.uniquindio.repository.impl.ExamenRepositoryImpl;
 import org.uniquindio.ui.controller.profesor.dialogs.CrearPreguntaDialogController;
 import org.uniquindio.ui.controller.profesor.dialogs.SeleccionarPreguntaDialogController;
 import org.uniquindio.model.dto.PreguntaSeleccionDTO;
-import org.uniquindio.model.dto.PreguntaExamenDTO; // Tu DTO para la tabla del examen
+
+import java.sql.SQLException;
 import java.util.List;
 
 // Importa tus clases de Repositorio que llamarán a PL/SQL
-// import org.uniquindio.repository.impl.CursoRepositoryImpl;
+import org.uniquindio.repository.impl.CatalogoRepositoryImpl;
 // import org.uniquindio.repository.impl.CategoriaRepositoryImpl;
 // import org.uniquindio.repository.impl.ExamenRepositoryImpl;
 // import org.uniquindio.repository.impl.PreguntaRepositoryImpl;
@@ -47,6 +52,7 @@ import java.util.ResourceBundle;
 
 public class CrearEditarExamenController implements Initializable {
 
+    private static final Integer ID_CREACION_AUTOMATICA = 2;
     @FXML private TextField txtNombreExamen;
     @FXML private ComboBox<Curso> comboCurso;
     @FXML private ComboBox<Categoria> comboCategoria;
@@ -75,14 +81,13 @@ public class CrearEditarExamenController implements Initializable {
 
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-    // private CursoRepositoryImpl cursoRepository = new CursoRepositoryImpl();
-    // private CategoriaRepositoryImpl categoriaRepository = new CategoriaRepositoryImpl();
-    // private ExamenRepositoryImpl examenRepository = new ExamenRepositoryImpl();
+    private CursoRepositoryImpl cursoRepository = new CursoRepositoryImpl();
+    private CatalogoRepositoryImpl catalogoRepository = new CatalogoRepositoryImpl();
+    private ExamenRepositoryImpl examenRepository = new ExamenRepositoryImpl();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         configurarTablaPreguntas();
-        cargarCombosIniciales();
         actualizarTotalPorcentaje();
 
         checkSeleccionAutomatica.selectedProperty().addListener((obs, oldVal, newVal) -> {
@@ -101,21 +106,43 @@ public class CrearEditarExamenController implements Initializable {
         // cargarCursosDelProfesor(); // Implementar si es necesario
     }
 
-    public void cargarExamenParaEdicion(Examen examen) {
+    /**
+     * Este método DEBE ser llamado por el DashboardProfesorController DESPUÉS de cargar este FXML
+     * y DESPUÉS de obtener la instancia de este controlador.
+     * @param profesor El profesor que ha iniciado sesión.
+     * @param examen (Opcional) El examen a editar, null si es creación.
+     */
+    public void initData(Profesor profesor, Examen examen) throws SQLException {
+        this.profesorLogueado = profesor;
         this.examenActual = examen;
+
+        cargarCombosIniciales(); // Ahora es seguro llamar esto
+
+        if (examenActual != null) {
+            cargarExamenParaEdicion(examenActual);
+        }
+    }
+
+    public void cargarExamenParaEdicion(Examen examen) throws SQLException {
         if (examen == null) return;
 
-        txtNombreExamen.setText(examen.getDescripcion()); // Asumiendo que quieres el nombre del examen aquí, no la descripción.
-        // Tu entidad Examen no tiene un campo 'nombre' explícito, usa 'descripcion' como título?
-        // Si 'descripcion' es el título, está bien. Si debe ser un campo 'nombre' separado,
-        // la entidad Examen y la BD necesitarían ese campo.
-        // Por ahora, usaré descripcion como si fuera el nombre/título.
-        txtNombreExamen.setText(examen.getDescripcion() != null ? examen.getDescripcion().substring(0, Math.min(examen.getDescripcion().length(), 50)) : ""); // Ejemplo si descripcion es largo y quieres un titulo corto.
+        txtNombreExamen.setText(examen.getNombre());
+        txtNombreExamen.setText(examen.getNombre() != null ? examen.getNombre().substring(0, Math.min(examen.getNombre().length(), 50)) : "");
 
 
         // TODO: Cargar y seleccionar el Curso y Categoria en los ComboBox
         // Necesitarás obtener el objeto Curso y Categoria basado en examen.getCursoId() y examen.getCategoriaId()
         // y luego hacer comboCurso.setValue(...) y comboCategoria.setValue(...)
+        if (comboCurso.getItems() != null && examen.getCursoId() != null) {
+            comboCurso.setValue(comboCurso.getItems().stream()
+            .filter(c -> c.getIdCurso() == examen.getCursoId())
+            .findFirst().orElse(null));
+            }
+        if (comboCategoria.getItems() != null && examen.getCategoriaId() != null) {
+            comboCategoria.setValue(comboCategoria.getItems().stream()
+            .filter(cat -> cat.getId() == examen.getCategoriaId())
+            .findFirst().orElse(null));
+            }
 
         txtDescripcionExamen.setText(examen.getDescripcion());
 
@@ -142,18 +169,18 @@ public class CrearEditarExamenController implements Initializable {
         // La entidad Examen no tiene un campo 'seleccionAutomatica'.
         // Esto podría depender del 'creacionId'. Por ejemplo, si creacionId = 2 es "Automático".
         // Necesitarías una forma de mapear esto.
-        // Ejemplo: if (examen.getCreacionId() != null && examen.getCreacionId() == ID_AUTOMATICO) {
-        // checkSeleccionAutomatica.setSelected(true);
-        // } else {
-        // checkSeleccionAutomatica.setSelected(false);
-        // }
-        // Por ahora, lo dejo comentado ya que requiere lógica adicional de mapeo de IDs.
-        // checkSeleccionAutomatica.setSelected(false);
+        if (examen.getCreacionId() != null && examen.getCreacionId() == ID_CREACION_AUTOMATICA) {
+            checkSeleccionAutomatica.setSelected(true);
+        } else {
+            checkSeleccionAutomatica.setSelected(false);
+        }
+
+        checkSeleccionAutomatica.setSelected(false);
 
 
         // TODO: Cargar las preguntas asociadas al examen (DetallePreguntaExamen) desde la BD
-        // List<PreguntaExamenDTO> preguntas = examenRepository.obtenerPreguntasDeExamenDTO(examen.getId());
-        // preguntasDelExamenList.setAll(preguntas);
+        List<PreguntaExamenDTO> preguntas = examenRepository.obtenerPreguntasDeExamenDTO(examen.getId());
+        preguntasDelExamenList.setAll(preguntas);
         actualizarTotalPorcentaje();
     }
 
@@ -181,66 +208,92 @@ public class CrearEditarExamenController implements Initializable {
         tablaPreguntasExamen.setItems(preguntasDelExamenList);
     }
 
-    private void cargarCombosIniciales() {
-        // TODO: Llamar a funciones PL/SQL via Repositorios para cargar Cursos y Categorías
-        // List<Curso> cursos = cursoRepository.listarCursosActivos(); // O filtrados por profesor
-        // comboCurso.setItems(FXCollections.observableArrayList(cursos));
-        // List<Categoria> categorias = categoriaRepository.listarCategoriasActivas();
-        // comboCategoria.setItems(FXCollections.observableArrayList(categorias));
 
-        // Placeholder data - Reemplazar con carga real
-        // comboCurso.setItems(FXCollections.observableArrayList(new Curso(1, "Cálculo I", ...), new Curso(2, "POO", ...)));
-        // comboCategoria.setItems(FXCollections.observableArrayList(new Categoria(1, "Parcial"), new Categoria(2, "Quiz")));
+
+    private void cargarCombosIniciales() {
+        if (profesorLogueado == null) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error Interno", "No se ha podido identificar al profesor para cargar sus cursos.");
+            return;
+        }
+
+        try {
+            List<Curso> cursos = cursoRepository.listarCursosPorProfesor(profesorLogueado.getCedula());
+            comboCurso.setItems(FXCollections.observableArrayList(cursos));
+            comboCurso.setConverter(new StringConverter<Curso>() {
+                @Override
+                public String toString(Curso curso) {
+                    return curso == null ? null : curso.getNombre();
+                }
+
+                @Override
+                public Curso fromString(String string) {
+                    return null;
+                }
+            });
+
+            List<Categoria> categorias = catalogoRepository.listarCategoriasExamen();
+            comboCategoria.setItems(FXCollections.observableArrayList(categorias));
+            comboCategoria.setConverter(new StringConverter<Categoria>() {
+                @Override
+                public String toString(Categoria categoria) {
+                    return categoria == null ? null : categoria.getNombre();
+                }
+
+                @Override
+                public Categoria fromString(String string) {
+                    return null;
+                }
+            });
+
+        } catch (SQLException e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error de Carga", "No se pudieron cargar los datos para los combos (cursos/categorías): " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 
     @FXML
     private void handleAnadirPreguntaExistente(ActionEvent event) {
+        if (profesorLogueado == null) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Profesor no identificado.");
+            return;
+        }
+        Curso cursoSeleccionado = comboCurso.getValue();
+        if (cursoSeleccionado == null) {
+            mostrarAlerta(Alert.AlertType.WARNING, "Selección Requerida", "Por favor, seleccione primero un curso. El banco de preguntas se filtrará por este curso.");
+            return;
+        }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/profesor/dialogs/seleccionar_pregunta_dialog.fxml"));
             Parent parent = loader.load();
 
             SeleccionarPreguntaDialogController dialogController = loader.getController();
-            // Pasar el profesor y el contexto del curso/contenido del examen actual para filtrar
-            Contenido contenidoDelExamen = null;
-            // if (comboCurso.getValue() != null) {
-            //    // Lógica para obtener el objeto Contenido principal del curso seleccionado,
-            //    // ya que las preguntas se asocian a un ContenidoId.
-            //    // Esto es crucial para que el diálogo filtre por el tema correcto.
-            //    // contenidoDelExamen = obtenerContenidoPrincipalDelCurso(comboCurso.getValue());
-            // }
-            dialogController.setProfesorYContexto(this.profesorLogueado, contenidoDelExamen);
-
+            dialogController.setProfesorYContexto(this.profesorLogueado, cursoSeleccionado);
 
             Stage dialogStage = new Stage();
-            dialogStage.setTitle("Seleccionar Preguntas del Banco");
+            dialogStage.setTitle("Seleccionar Preguntas del Banco para: " + cursoSeleccionado.getNombre());
             dialogStage.initModality(Modality.WINDOW_MODAL);
-            // dialogStage.initOwner(((Node)event.getSource()).getScene().getWindow());
+            dialogStage.initOwner( (Stage) ((Node)event.getSource()).getScene().getWindow() );
+
+
             Scene scene = new Scene(parent);
             dialogStage.setScene(scene);
-
             dialogController.setDialogStage(dialogStage);
 
-            dialogStage.showAndWait(); // Mostrar el diálogo y esperar
+            dialogStage.showAndWait();
 
             List<PreguntaSeleccionDTO> preguntasAnadidas = dialogController.getPreguntasSeleccionadas();
             if (preguntasAnadidas != null && !preguntasAnadidas.isEmpty()) {
                 for (PreguntaSeleccionDTO pSeleccionada : preguntasAnadidas) {
-                    // Convertir PreguntaSeleccionDTO a PreguntaExamenDTO (el que usa tu tabla principal)
                     PreguntaExamenDTO nuevaPreguntaParaExamen = new PreguntaExamenDTO(
                             pSeleccionada.getIdPregunta(),
                             pSeleccionada.getTextoPregunta(),
-                            pSeleccionada.getTipoPreguntaNombre(), // O el ID si lo necesitas
+                            pSeleccionada.getTipoPreguntaNombre(),
                             pSeleccionada.getPorcentajeEnExamen()
                     );
-                    // Evitar duplicados si la pregunta ya está en la lista del examen
-                    boolean existe = false;
-                    for(PreguntaExamenDTO existente : preguntasDelExamenList){
-                        if(existente.getIdPregunta() == nuevaPreguntaParaExamen.getIdPregunta()){
-                            existe = true;
-                            break;
-                        }
-                    }
+                    boolean existe = preguntasDelExamenList.stream()
+                            .anyMatch(ex -> ex.getIdPregunta() == nuevaPreguntaParaExamen.getIdPregunta());
                     if(!existe){
                         preguntasDelExamenList.add(nuevaPreguntaParaExamen);
                     } else {
@@ -253,7 +306,10 @@ public class CrearEditarExamenController implements Initializable {
 
         } catch (IOException e) {
             e.printStackTrace();
-            mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo abrir el diálogo de selección de pregunta.");
+            mostrarAlerta(Alert.AlertType.ERROR, "Error de Carga FXML", "No se pudo abrir el diálogo de selección de pregunta: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error Inesperado", "Ocurrió un error inesperado: " + e.getMessage());
         }
     }
 

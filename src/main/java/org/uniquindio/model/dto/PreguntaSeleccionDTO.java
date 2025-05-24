@@ -16,7 +16,7 @@ public class PreguntaSeleccionDTO {
     private final BooleanProperty seleccionado;
     private final DoubleProperty porcentajeEnExamen; // Porcentaje que tendrá ESTA pregunta EN ESTE examen
 
-    public PreguntaSeleccionDTO(long idPregunta, String textoPregunta, String tipoPreguntaNombre, String nivelNombre, double porcentajeInicial) {
+    public PreguntaSeleccionDTO(long idPregunta, String textoPregunta, String tipoPreguntaNombre, String nivelNombre, boolean b, double porcentajeInicial) {
         this.idPregunta = new SimpleLongProperty(idPregunta);
         this.textoPregunta = new SimpleStringProperty(textoPregunta);
         this.tipoPreguntaNombre = new SimpleStringProperty(tipoPreguntaNombre);

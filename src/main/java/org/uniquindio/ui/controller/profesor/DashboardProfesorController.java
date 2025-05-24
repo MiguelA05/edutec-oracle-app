@@ -17,6 +17,7 @@ import org.uniquindio.ui.controller.comun.LoginController; // Para volver al log
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 public class DashboardProfesorController implements Initializable {
@@ -126,7 +127,12 @@ public class DashboardProfesorController implements Initializable {
 
             Object controller = loader.getController();
             if (profesorLogueado != null && controller != null) {
-                // Intentar pasar el objeto Profesor al controlador de la sub-vista
+                if (controller instanceof CrearEditarExamenController) {
+                    CrearEditarExamenController crearEditarCtrl = (CrearEditarExamenController) controller;
+                    crearEditarCtrl.initData(this.profesorLogueado, null);
+                    // Si es para editar un examen existente (examenAEditar es tu objeto Examen):
+                    // crearEditarCtrl.initData(this.profesorLogueado, examenAEditar);
+                }
                 try {
                     java.lang.reflect.Method initMethod = null;
                     try {
@@ -153,6 +159,8 @@ public class DashboardProfesorController implements Initializable {
             Label lblError = new Label("No se pudo cargar la sección: " + tituloSeccion);
             lblError.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
             panelContenidoProfesor.getChildren().setAll(lblError);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
