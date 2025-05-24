@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class Pregunta {
     private int idPregunta;
     private String texto;
-    private Double tiempoEstimado;
+    private Integer tiempoEstimado;
     private BigDecimal porcentaje;
     private Integer tipoPreguntaId; // FK, puede ser null
     private Integer visibilidadId;  // FK, puede ser null
@@ -25,7 +25,7 @@ public class Pregunta {
     private LocalDateTime fechaModificacion;
     private String usuarioModificacion;
 
-    public Pregunta(int idPregunta, String texto, Double tiempo, BigDecimal porcentaje,
+    public Pregunta(int idPregunta, String texto, Integer tiempo, BigDecimal porcentaje,
                     Integer tipoPreguntaId, Integer visibilidadId, Integer nivelId,
                     Integer preguntaPadre, Integer contenidoId, int creadorCedulaProfesor, LocalDateTime fechaCreacion, LocalDateTime fechaModificacion, String usuarioModificacion) {
         this.idPregunta = idPregunta;

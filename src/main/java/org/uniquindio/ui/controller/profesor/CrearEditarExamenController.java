@@ -316,44 +316,44 @@ public class CrearEditarExamenController implements Initializable {
     @FXML
     private void handleCrearNuevaPregunta(ActionEvent event) {
         try {
+            // Load the FXML for the dialog
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/profesor/dialogs/crear_pregunta_dialog.fxml"));
             Parent parent = loader.load();
 
+            // Get the controller for the dialog
             CrearPreguntaDialogController dialogController = loader.getController();
-            dialogController.setProfesor(this.profesorLogueado); // Pasar el profesor logueado
-            // Si necesitas pasar el tema/contenido del examen actual para preseleccionar el combo:
-            // if (comboCurso.getValue() != null) {
-            //    // Necesitarías una forma de obtener el ContenidoId del Curso o un objeto Contenido
-            //    // dialogController.setContenidoPredeterminado(obtenerContenidoDelCursoSeleccionado());
-            // }
+            dialogController.setProfesor(this.profesorLogueado); // Pass the logged-in professor
 
-
+            // Create and configure the dialog stage
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Crear Nueva Pregunta");
             dialogStage.initModality(Modality.WINDOW_MODAL);
-            // dialogStage.initOwner(((Node)event.getSource()).getScene().getWindow()); // Opcional para centrar respecto a la ventana padre
-            Scene scene = new Scene(parent);
-            dialogStage.setScene(scene);
+            dialogStage.initOwner(((Node) event.getSource()).getScene().getWindow());
+            dialogStage.setScene(new Scene(parent));
 
-            dialogController.setDialogStage(dialogStage); // Pasar el stage al controlador del diálogo
+            // Pass the stage to the dialog controller
+            dialogController.setDialogStage(dialogStage);
 
-            dialogStage.showAndWait(); // Mostrar el diálogo y esperar
+            // Show the dialog and wait for it to close
+            dialogStage.showAndWait();
 
-            Pregunta preguntaCreada = dialogController.getPreguntaCreada();
+            // Retrieve the created question
+            Pregunta preguntaCreada = dialogController.getPreguntaCreadaOEditada();
             if (preguntaCreada != null) {
-                // TODO: Añadir la preguntaCreada (o un DTO) a preguntasDelExamenList
-                // Esto requiere que el ID de la pregunta ya esté asignado (devuelto por PL/SQL)
-                // PreguntaExamenDTO nuevaPreguntaDTO = new PreguntaExamenDTO(
-                //        (long) preguntaCreada.getIdPregunta(),
-                //        preguntaCreada.getTexto(),
-                //        comboTipoPregunta.getValue() != null ? comboTipoPregunta.getValue().getNombre() : "Desconocido", // Obtener nombre del tipo
-                //        preguntaCreada.getPorcentaje() != null ? preguntaCreada.getPorcentaje().doubleValue() : 10.0
-                // );
-                // preguntasDelExamenList.add(nuevaPreguntaDTO);
-                // actualizarTotalPorcentaje();
-                mostrarAlerta(Alert.AlertType.INFORMATION, "Pregunta Añadida", "La pregunta '" + preguntaCreada.getTexto().substring(0, Math.min(preguntaCreada.getTexto().length(), 30)) + "...' se ha creado y añadido (simulado).");
-            }
+                // Add the created question to the exam's question list
+                PreguntaExamenDTO nuevaPreguntaDTO = new PreguntaExamenDTO(
+                        (long) preguntaCreada.getIdPregunta(),
+                        preguntaCreada.getTexto(),
+                        preguntaCreada.getTipoPreguntaId() != null ? "Tipo " + preguntaCreada.getTipoPreguntaId() : "Desconocido",
+                        preguntaCreada.getPorcentaje() != null ? preguntaCreada.getPorcentaje().doubleValue() : 10.0
+                );
+                preguntasDelExamenList.add(nuevaPreguntaDTO);
+                actualizarTotalPorcentaje();
 
+                // Show success message
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Pregunta Añadida",
+                        "La pregunta '" + preguntaCreada.getTexto().substring(0, Math.min(preguntaCreada.getTexto().length(), 30)) + "...' se ha creado y añadido.");
+            }
         } catch (IOException e) {
             e.printStackTrace();
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo abrir el diálogo de creación de pregunta.");

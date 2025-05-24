@@ -100,7 +100,7 @@ public class PreguntaRepositoryImpl {
                     pregunta = new Pregunta(
                             rs.getInt("ID_PREGUNTA"),
                             rs.getString("TEXTO"),
-                            Double.valueOf(rs.getObject("TIEMPO_ESTIMADO", Integer.class)), // Ajustado para NUMBER
+                            (rs.getObject("TIEMPO_ESTIMADO", Integer.class)), // Ajustado para NUMBER
                             rs.getBigDecimal("PORCENTAJE"),
                             rs.getObject("TIPO_PREGUNTA_ID", Integer.class),
                             rs.getObject("VISIBILIDAD_ID", Integer.class),
