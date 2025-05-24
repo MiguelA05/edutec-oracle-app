@@ -2,35 +2,43 @@ package org.uniquindio.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.uniquindio.model.entity.evaluacion.Examen; // Para tener una referencia al examen completo si es necesario
+import org.uniquindio.model.entity.evaluacion.Examen;
 
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime; // Importar LocalDateTime
+import java.time.format.DateTimeFormatter; // Importar DateTimeFormatter
 import java.util.Date;
 
 @Getter
 @Setter
 public class ExamenDisponibleDTO {
     private int idExamen;
-    private String nombreExamen; // O descripción si se usa como título
-    private String nombreCurso; // Nombre del curso al que pertenece
-    private String fechaPresentacion; // Formateada
-    private String horaPresentacion; // Formateada
-    private Integer tiempoDuracion; // En minutos
+    private String nombreExamen;
+    private String nombreCurso;
+    private String fechaPresentacion;
+    private String horaPresentacion; // Este se formateará desde LocalDateTime
+    private Integer tiempoDuracion;
     private Integer numeroPreguntasAMostrar;
-    private Examen examenOriginal; // Referencia al objeto Examen completo para pasarlo al iniciar
+    private Examen examenOriginal;
 
     public ExamenDisponibleDTO(int idExamen, String nombreExamen, String nombreCurso,
-                               Date fecha, Date hora, Integer tiempoDuracion, Integer numeroPreguntasAMostrar,
+                               Date fecha, // java.util.Date para la fecha
+                               LocalDateTime hora, // java.time.LocalDateTime para la hora
+                               Integer tiempoDuracion, Integer numeroPreguntasAMostrar,
                                Examen examenOriginal) {
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        // Usar DateTimeFormatter para LocalDateTime
+        DateTimeFormatter timeFormatterForDTO = DateTimeFormatter.ofPattern("HH:mm");
 
         this.idExamen = idExamen;
         this.nombreExamen = nombreExamen;
         this.nombreCurso = nombreCurso;
-        this.fechaPresentacion = (fecha != null) ? dateFormat.format(fecha) : "N/A";
-        this.horaPresentacion = (hora != null) ? timeFormat.format(hora) : "N/A";
+        this.fechaPresentacion = (fecha != null) ? dateFormat.format(fecha) : "N/A"; // Correcto para java.util.Date
+
+        // Corrección para formatear LocalDateTime
+        this.horaPresentacion = (hora != null) ? hora.format(timeFormatterForDTO) : "N/A";
+
         this.tiempoDuracion = tiempoDuracion;
         this.numeroPreguntasAMostrar = numeroPreguntasAMostrar;
         this.examenOriginal = examenOriginal;

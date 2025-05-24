@@ -10,8 +10,6 @@ import org.uniquindio.model.dto.PreguntaExamenDTO;
 import org.uniquindio.model.dto.PreguntaPresentacionDTO;
 import org.uniquindio.model.dto.ResultadoExamenDTO;
 import org.uniquindio.model.entity.evaluacion.Examen;
-// import org.uniquindio.model.entity.evaluacion.Pregunta; // Descomentar si es necesario
-// import org.uniquindio.model.entity.evaluacion.PresentacionExamen; // Descomentar si es necesario
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -27,7 +25,7 @@ public class ExamenRepositoryImpl {
     private static final String FUNC_OBTENER_EXAMEN_POR_ID = "OBTENER_EXAMEN_POR_ID";
     private static final String FUNC_LISTAR_EXAMENES_PROFESOR = "LISTAR_EXAMENES_POR_PROFESOR";
     private static final String FUNC_LISTAR_EXAMENES_DISPONIBLES_EST = "LISTAR_EXAMENES_DISPONIBLES_EST";
-    private static final String PROC_ELIMINAR_EXAMEN = "ELIMINAR_EXAMEN_POR_ID"; // Asumiendo que existe
+    private static final String PROC_ELIMINAR_EXAMEN = "ELIMINAR_EXAMEN_POR_ID";
     private static final String FUNC_OBTENER_PREGUNTAS_EXAMEN_DTO = "OBTENER_PREGUNTAS_EXAMEN_DTO";
 
     private static final String PAQUETE_PRESENTACION_EXAMEN = "PAQUETE_PRESENTACION_EXAMEN";
@@ -46,23 +44,7 @@ public class ExamenRepositoryImpl {
     private static final String T_ARRAY_PREGUNTA_EXAMEN_SQL = "T_ARRAY_PREGUNTA_EXAMEN_TYPE";
 
 
-    /**
-     * Crea un examen completo con sus detalles y preguntas asociadas.
-     * Llama a un procedimiento PL/SQL.
-     *
-     * @param examen El objeto Examen con la información general.
-     * @param preguntasParaExamen Lista de DTOs con las preguntas y sus porcentajes para este examen.
-     * Si examen.getCreacionId() es para automático, esta lista puede ser vacía/null
-     * y el PL/SQL se encargará de seleccionar preguntas.
-     * @param cedulaProfesor Cédula del profesor que crea el examen.
-     * @return El ID del examen creado.
-     * @throws SQLException Si ocurre un error de base de datos.
-     */
     public int crearExamenCompleto(Examen examen, List<PreguntaExamenDTO> preguntasParaExamen, long cedulaProfesor) throws SQLException {
-        // Parámetros PL/SQL: p_nombre_examen, p_descripcion_examen, p_curso_id, p_categoria_id,
-        // p_fecha_presentacion, p_hora_presentacion, p_tiempo_duracion, p_num_preguntas_estudiante,
-        // p_calif_min_aprobatoria, p_peso_curso, p_creacion_id, p_cedula_profesor,
-        // p_preguntas_detalle, p_id_examen_out
         String sql = String.format("{call %s.%s(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}",
                 PAQUETE_GESTION_EXAMENES, PROC_CREAR_EXAMEN_COMPLETO);
 
@@ -74,7 +56,11 @@ public class ExamenRepositoryImpl {
             cstmt.setInt(3, examen.getCursoId());
             cstmt.setInt(4, examen.getCategoriaId());
             cstmt.setDate(5, new java.sql.Date(examen.getFecha().getTime()));
-            cstmt.setTimestamp(6, new java.sql.Timestamp(examen.getHora().getTime())); // Usar Timestamp para DATE con hora
+            if (examen.getHora() != null) {
+                cstmt.setTimestamp(6, Timestamp.valueOf(examen.getHora()));
+            } else {
+                cstmt.setNull(6, Types.TIMESTAMP);
+            }
             cstmt.setInt(7, examen.getTiempo());
             cstmt.setInt(8, examen.getNumeroPreguntas());
             cstmt.setBigDecimal(9, examen.getCalificacionMinAprobatoria());
@@ -82,7 +68,6 @@ public class ExamenRepositoryImpl {
             cstmt.setInt(11, examen.getCreacionId());
             cstmt.setLong(12, cedulaProfesor);
 
-            // Preparar la colección de detalles de preguntas
             ArrayDescriptor arrayDesc = ArrayDescriptor.createDescriptor(T_ARRAY_PREGUNTA_EXAMEN_SQL.toUpperCase(), conn);
             StructDescriptor structDesc = StructDescriptor.createDescriptor(T_REGISTRO_PREGUNTA_EXAMEN_SQL.toUpperCase(), conn);
             STRUCT[] preguntasStructArray = null;
@@ -92,40 +77,22 @@ public class ExamenRepositoryImpl {
                 for (int i = 0; i < preguntasParaExamen.size(); i++) {
                     PreguntaExamenDTO dto = preguntasParaExamen.get(i);
                     Object[] attribs = new Object[]{
-                            BigDecimal.valueOf(dto.getIdPregunta()), // p_id_pregunta NUMBER
-                            BigDecimal.valueOf(dto.getPorcentaje())  // p_porcentaje NUMBER(5,2)
+                            BigDecimal.valueOf(dto.getIdPregunta()),
+                            BigDecimal.valueOf(dto.getPorcentaje())
                     };
                     preguntasStructArray[i] = new STRUCT(structDesc, conn, attribs);
                 }
             }
             ARRAY arraySqlPreguntas = new ARRAY(arrayDesc, conn, preguntasStructArray);
             cstmt.setArray(13, arraySqlPreguntas);
-
-            cstmt.registerOutParameter(14, Types.INTEGER); // p_id_examen_out
-
+            cstmt.registerOutParameter(14, Types.INTEGER);
             cstmt.executeUpdate();
             return cstmt.getInt(14);
         }
     }
 
-    /**
-     * Actualiza un examen existente y sus detalles de preguntas.
-     * Llama a un procedimiento PL/SQL.
-     *
-     * @param examen El objeto Examen con los datos actualizados.
-     * @param preguntasParaExamen Lista de DTOs con las nuevas preguntas y sus porcentajes.
-     * Si examen.getCreacionId() es para automático, esta lista puede ser vacía/null.
-     * @return true si la actualización fue exitosa, false en caso contrario (o lanza excepción).
-     * @throws SQLException Si ocurre un error de base de datos.
-     */
     public boolean actualizarExamenCompleto(Examen examen, List<PreguntaExamenDTO> preguntasParaExamen) throws SQLException {
-        // Parámetros PL/SQL: p_id_examen, p_nombre_examen, p_descripcion_examen, p_curso_id, p_categoria_id,
-        // p_fecha_presentacion, p_hora_presentacion, p_tiempo_duracion, p_num_preguntas_estudiante,
-        // p_calif_min_aprobatoria, p_peso_curso, p_creacion_id,
-        // p_preguntas_detalle (y un parámetro para el usuario que modifica, si lo tienes)
-        // Asumimos que el PL/SQL no necesita p_cedula_profesor para actualizar,
-        // pero sí podría necesitar un p_usuario_modificacion.
-        String sql = String.format("{call %s.%s(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}", // 13 parámetros
+        String sql = String.format("{call %s.%s(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}",
                 PAQUETE_GESTION_EXAMENES, PROC_ACTUALIZAR_EXAMEN_COMPLETO);
 
         try (Connection conn = ConnectionOracle.conectar();
@@ -137,7 +104,11 @@ public class ExamenRepositoryImpl {
             cstmt.setInt(4, examen.getCursoId());
             cstmt.setInt(5, examen.getCategoriaId());
             cstmt.setDate(6, new java.sql.Date(examen.getFecha().getTime()));
-            cstmt.setTimestamp(7, new java.sql.Timestamp(examen.getHora().getTime()));
+            if (examen.getHora() != null) {
+                cstmt.setTimestamp(7, Timestamp.valueOf(examen.getHora()));
+            } else {
+                cstmt.setNull(7, Types.TIMESTAMP);
+            }
             cstmt.setInt(8, examen.getTiempo());
             cstmt.setInt(9, examen.getNumeroPreguntas());
             cstmt.setBigDecimal(10, examen.getCalificacionMinAprobatoria());
@@ -161,38 +132,34 @@ public class ExamenRepositoryImpl {
             }
             ARRAY arraySqlPreguntas = new ARRAY(arrayDesc, conn, preguntasStructArray);
             cstmt.setArray(13, arraySqlPreguntas);
-
-            // Si tu PL/SQL tiene un parámetro OUT para filas afectadas:
-            // cstmt.registerOutParameter(14, Types.INTEGER);
-            // cstmt.executeUpdate();
-            // return cstmt.getInt(14) > 0;
-
             cstmt.executeUpdate();
-            return true; // Asumir éxito si no hay excepción. El PL/SQL debería lanzar error si falla.
+            return true;
         }
     }
 
     public Examen obtenerExamenConDetallesPorId(int examenId) throws SQLException {
         Examen examen = null;
-        // Asumiendo que tu entidad Examen tiene un campo 'nombre'
         String sqlExamen = String.format("{? = call %s.%s(?)}", PAQUETE_GESTION_EXAMENES, FUNC_OBTENER_EXAMEN_POR_ID);
 
         try (Connection conn = ConnectionOracle.conectar();
              CallableStatement cstmtExamen = conn.prepareCall(sqlExamen)) {
-
             cstmtExamen.registerOutParameter(1, OracleTypes.CURSOR);
             cstmtExamen.setInt(2, examenId);
             cstmtExamen.execute();
-
             try (ResultSet rsExamen = (ResultSet) cstmtExamen.getObject(1)) {
                 if (rsExamen != null && rsExamen.next()) {
                     examen = new Examen();
                     examen.setId(rsExamen.getInt("ID"));
-                    examen.setNombre(rsExamen.getString("NOMBRE")); // Leer el nombre
+                    examen.setNombre(rsExamen.getString("NOMBRE"));
                     examen.setTiempo(rsExamen.getObject("TIEMPO", Integer.class));
                     examen.setNumeroPreguntas(rsExamen.getObject("NUMERO_PREGUNTAS", Integer.class));
                     examen.setFecha(rsExamen.getDate("FECHA"));
-                    examen.setHora(rsExamen.getTimestamp("HORA")); // Usar getTimestamp si es DATE con hora
+                    Timestamp horaTimestamp = rsExamen.getTimestamp("HORA");
+                    if (horaTimestamp != null) {
+                        examen.setHora(horaTimestamp.toLocalDateTime());
+                    } else {
+                        examen.setHora(null);
+                    }
                     examen.setCalificacionMinAprobatoria(rsExamen.getBigDecimal("CALIFICACION_MIN_APROBATORIA"));
                     examen.setPesoCurso(rsExamen.getBigDecimal("PESO_CURSO"));
                     examen.setDescripcion(rsExamen.getString("DESCRIPCION"));
@@ -208,30 +175,21 @@ public class ExamenRepositoryImpl {
     public List<PreguntaExamenDTO> obtenerPreguntasDeExamenDTO(int examenId) throws SQLException {
         List<PreguntaExamenDTO> preguntas = new ArrayList<>();
         String sql = String.format("{? = call %s.%s(?)}", PAQUETE_GESTION_EXAMENES, FUNC_OBTENER_PREGUNTAS_EXAMEN_DTO);
-        Connection conn = null;
-        CallableStatement cstmt = null;
-        ResultSet rs = null;
-
-        try {
-            conn = ConnectionOracle.conectar(); // Siempre crear nueva conexión si no se pasa una
-            cstmt = conn.prepareCall(sql);
+        try (Connection conn = ConnectionOracle.conectar();
+             CallableStatement cstmt = conn.prepareCall(sql)) {
             cstmt.registerOutParameter(1, OracleTypes.CURSOR);
             cstmt.setInt(2, examenId);
             cstmt.execute();
-            rs = (ResultSet) cstmt.getObject(1);
-
-            while (rs != null && rs.next()) {
-                preguntas.add(new PreguntaExamenDTO(
-                        rs.getLong("ID_PREGUNTA"),
-                        rs.getString("TEXTO_PREGUNTA"),
-                        rs.getString("NOMBRE_TIPO_PREGUNTA"),
-                        rs.getDouble("PORCENTAJE")
-                ));
+            try (ResultSet rs = (ResultSet) cstmt.getObject(1)) {
+                while (rs != null && rs.next()) {
+                    preguntas.add(new PreguntaExamenDTO(
+                            rs.getLong("ID_PREGUNTA"),
+                            rs.getString("TEXTO_PREGUNTA"),
+                            rs.getString("NOMBRE_TIPO_PREGUNTA"),
+                            rs.getDouble("PORCENTAJE")
+                    ));
+                }
             }
-        } finally {
-            if (rs != null) try { rs.close(); } catch (SQLException e) { /* ignore */ }
-            if (cstmt != null) try { cstmt.close(); } catch (SQLException e) { /* ignore */ }
-            if (conn != null) try { conn.close(); } catch (SQLException e) { /* ignore */ }
         }
         return preguntas;
     }
@@ -247,11 +205,9 @@ public class ExamenRepositoryImpl {
             try (ResultSet rs = (ResultSet) cstmt.getObject(1)) {
                 while (rs != null && rs.next()) {
                     Examen examen = new Examen();
-                    examen.setId(rs.getInt("ID_EXAMEN")); // Ajustar nombres de columna según tu PL/SQL
+                    examen.setId(rs.getInt("ID_EXAMEN"));
                     examen.setNombre(rs.getString("NOMBRE_EXAMEN"));
                     examen.setDescripcion(rs.getString("DESCRIPCION_EXAMEN"));
-                    // ... mapear las demás columnas que devuelve tu función ...
-                    // examen.setNombreCurso(rs.getString("NOMBRE_CURSO")); // Si el PL/SQL hace el JOIN
                     examenes.add(examen);
                 }
             }
@@ -275,16 +231,19 @@ public class ExamenRepositoryImpl {
             try (ResultSet rs = (ResultSet) cstmt.getObject(1)) {
                 while (rs != null && rs.next()) {
                     Examen examen = new Examen();
-                    // Mapear columnas devueltas por FUNC_LISTAR_EXAMENES_DISPONIBLES_EST
-                    examen.setId(rs.getInt("ID")); // Asumiendo que devuelve las columnas de la tabla EXAMEN
+                    examen.setId(rs.getInt("ID"));
                     examen.setNombre(rs.getString("NOMBRE"));
                     examen.setDescripcion(rs.getString("DESCRIPCION"));
                     examen.setFecha(rs.getDate("FECHA"));
-                    examen.setHora(rs.getTimestamp("HORA"));
+                    Timestamp horaTimestamp = rs.getTimestamp("HORA");
+                    if (horaTimestamp != null) {
+                        examen.setHora(horaTimestamp.toLocalDateTime());
+                    } else {
+                        examen.setHora(null);
+                    }
                     examen.setTiempo(rs.getObject("TIEMPO", Integer.class));
                     examen.setNumeroPreguntas(rs.getObject("NUMERO_PREGUNTAS", Integer.class));
                     examen.setCursoId(rs.getObject("CURSO_ID", Integer.class));
-                    // ... y cualquier otra columna necesaria para el DTO ExamenDisponibleDTO
                     examenes.add(examen);
                 }
             }
@@ -315,23 +274,75 @@ public class ExamenRepositoryImpl {
             cstmt.execute();
             try (ResultSet rs = (ResultSet) cstmt.getObject(1)) {
                 while (rs != null && rs.next()) {
+                    // --- Inicio Bloque de Depuración ---
+                    ResultSetMetaData rsmdPrincipal = rs.getMetaData();
+                    boolean opcionesCursorColumnExists = false;
+                    int opcionesCursorColumnIndex = -1;
+                    System.out.println("--- Columnas en ResultSet principal (rs) para PEE_ID: " + rs.getInt("ID_PREGUNTA_EXAMEN_ESTUDIANTE") + " ---");
+                    for (int i = 1; i <= rsmdPrincipal.getColumnCount(); i++) {
+                        String columnName = rsmdPrincipal.getColumnName(i);
+                        String columnLabel = rsmdPrincipal.getColumnLabel(i); // Usar getColumnLabel para el alias
+                        System.out.println("Columna " + i + ": Nombre=" + columnName + " | Label=" + columnLabel +
+                                " | Tipo JDBC: " + rsmdPrincipal.getColumnType(i) +
+                                " | Nombre Tipo JDBC: " + rsmdPrincipal.getColumnTypeName(i));
+                        if ("OPCIONES_CURSOR".equalsIgnoreCase(columnLabel)) {
+                            opcionesCursorColumnExists = true;
+                            opcionesCursorColumnIndex = i;
+                        }
+                    }
+                    // --- Fin Bloque de Depuración ---
+
                     int peeId = rs.getInt("ID_PREGUNTA_EXAMEN_ESTUDIANTE");
                     String texto = rs.getString("TEXTO_PREGUNTA");
                     String tipoNombre = rs.getString("NOMBRE_TIPO_PREGUNTA");
-                    Integer tipoId = rs.getObject("ID_TIPO_PREGUNTA", Integer.class);
+                    // CORRECCIÓN: Usar el alias correcto "TIPO_PREGUNTA_ID" y manejar NULLs con getObject
+                    Integer tipoId = rs.getObject("TIPO_PREGUNTA_ID", Integer.class);
                     String tiempoSugerido = rs.getString("TIEMPO_SUGERIDO_PREGUNTA");
 
                     List<PreguntaPresentacionDTO.OpcionPresentacionDTO> opciones = new ArrayList<>();
-                    // Lógica para obtener opciones si el cursor anidado OPCIONES_CURSOR es devuelto
-                    ResultSet rsOpciones = (ResultSet) rs.getObject("OPCIONES_CURSOR"); // Ajusta el nombre de la columna del cursor
-                    if (rsOpciones != null) {
-                        while(rsOpciones.next()){
-                            opciones.add(new PreguntaPresentacionDTO.OpcionPresentacionDTO(
-                                    rsOpciones.getInt("ID_OPCION"), // Ajusta nombres de columna
-                                    rsOpciones.getString("TEXTO_OPCION") // Ajusta nombres de columna
-                            ));
+                    String nombreColumnaCursorOpciones = "OPCIONES_CURSOR";
+                    Object cursorObject = null;
+
+                    if (!opcionesCursorColumnExists) {
+                        System.err.println("ERROR CRITICO: La columna '" + nombreColumnaCursorOpciones + "' NO fue encontrada en el ResultSet principal para PEE_ID: " + peeId);
+                    } else {
+                        try {
+                            // Si el error persiste aquí, considera obtener por índice como último recurso:
+                            // cursorObject = rs.getObject(opcionesCursorColumnIndex);
+                            cursorObject = rs.getObject(nombreColumnaCursorOpciones);
+                        } catch (SQLException eGetObj) {
+                            System.err.println("ERROR al ejecutar rs.getObject('" + nombreColumnaCursorOpciones + "') para PEE_ID " + peeId + ". Detalles: " + eGetObj.getMessage());
+                            eGetObj.printStackTrace();
                         }
-                        rsOpciones.close();
+
+                        if (cursorObject != null) {
+                            System.out.println("DEBUG: Objeto obtenido para '" + nombreColumnaCursorOpciones + "' para PEE_ID " + peeId + ". Tipo real: " + cursorObject.getClass().getName());
+                            if (cursorObject instanceof ResultSet) {
+                                try (ResultSet rsOpciones = (ResultSet) cursorObject) {
+                                    System.out.println("DEBUG: Procesando OPCIONES_CURSOR como ResultSet para PEE_ID: " + peeId);
+                                    ResultSetMetaData rsmdOpciones = rsOpciones.getMetaData();
+                                    System.out.println("DEBUG: Columnas en rsOpciones:");
+                                    for (int i = 1; i <= rsmdOpciones.getColumnCount(); i++) {
+                                        System.out.println("  Columna " + i + ": Nombre=" + rsmdOpciones.getColumnName(i) + " | Label=" + rsmdOpciones.getColumnLabel(i));
+                                    }
+
+                                    while (rsOpciones.next()) {
+                                        int idOpcion = rsOpciones.getInt("ID_OPCION");
+                                        String textoOpcion = rsOpciones.getString("TEXTO_OPCION");
+                                        opciones.add(new PreguntaPresentacionDTO.OpcionPresentacionDTO(idOpcion, textoOpcion));
+                                    }
+                                    System.out.println("DEBUG: Opciones procesadas para PEE_ID: " + peeId + ", Cantidad: " + opciones.size());
+                                } catch (SQLException e_opciones) {
+                                    System.err.println("Error al procesar el ResultSet de OPCIONES_CURSOR para PEE_ID " + peeId + ". Detalles: " + e_opciones.getMessage());
+                                    e_opciones.printStackTrace();
+                                }
+                            } else {
+                                System.err.println("Advertencia: El objeto para la columna '" + nombreColumnaCursorOpciones + "' para PEE_ID " + peeId +
+                                        " no es una instancia de ResultSet. Tipo real: " + cursorObject.getClass().getName());
+                            }
+                        } else if (opcionesCursorColumnExists) {
+                            System.out.println("DEBUG: El objeto para OPCIONES_CURSOR es null para PEE_ID: " + peeId + " (puede ser normal si no hay opciones o el cursor está vacío).");
+                        }
                     }
                     preguntas.add(new PreguntaPresentacionDTO(peeId, texto, tipoNombre, tipoId, opciones, tiempoSugerido));
                 }
@@ -425,13 +436,9 @@ public class ExamenRepositoryImpl {
                     String textoP = rs.getString("TEXTO_PREGUNTA");
                     String tipoP = rs.getString("NOMBRE_TIPO_PREGUNTA");
                     String respEst = rs.getString("RESPUESTA_ESTUDIANTE");
-
-                    // Para OPCIONES_CORRECTAS_TEXTO y OPCIONES_CORRECTAS_ID,
-                    // si el PL/SQL devuelve una cadena separada por comas, necesitas parsearla.
                     String opcionesCorrectasTextoStr = rs.getString("OPCIONES_CORRECTAS_TEXTO");
                     List<String> optCorrectasTexto = (opcionesCorrectasTextoStr != null && !opcionesCorrectasTextoStr.isEmpty()) ?
                             List.of(opcionesCorrectasTextoStr.split("\\s*,\\s*")) : Collections.emptyList();
-
                     String opcionesCorrectasIdStr = rs.getString("OPCIONES_CORRECTAS_ID");
                     List<Integer> optCorrectasId = new ArrayList<>();
                     if (opcionesCorrectasIdStr != null && !opcionesCorrectasIdStr.isEmpty()) {
@@ -443,10 +450,8 @@ public class ExamenRepositoryImpl {
                             }
                         }
                     }
-
                     boolean esCorrecta = rs.getInt("ES_CORRECTA_LA_RESPUESTA") == 1;
                     String feedback = rs.getString("FEEDBACK_ESPECIFICO_PREGUNTA");
-
                     detalles.add(new DetalleRespuestaPreguntaDTO(peeId, textoP, tipoP, respEst,
                             optCorrectasTexto, optCorrectasId,
                             esCorrecta, feedback));
@@ -455,7 +460,6 @@ public class ExamenRepositoryImpl {
         }
         return detalles;
     }
-
 
     public int contarProximosExamenesEstudiante(long cedulaEstudiante) throws SQLException {
         String sql = String.format("{? = call %s.%s(?)}", PAQUETE_ESTADISTICAS_EXAMEN, FUNC_CONTAR_PROXIMOS_EXAMENES_EST);
@@ -476,7 +480,7 @@ public class ExamenRepositoryImpl {
             cstmt.setLong(2, cedulaEstudiante);
             cstmt.execute();
             String resultado = cstmt.getString(1);
-            return resultado != null ? resultado : ""; // Devolver cadena vacía si es null
+            return resultado != null ? resultado : "";
         }
     }
 

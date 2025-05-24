@@ -12,7 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import org.uniquindio.model.entity.academico.Contenido;
-import org.uniquindio.model.entity.academico.Curso; // Importar Curso
+import org.uniquindio.model.entity.academico.Curso;
 import org.uniquindio.model.entity.evaluacion.OpcionPregunta;
 import org.uniquindio.model.entity.evaluacion.Pregunta;
 import org.uniquindio.model.entity.catalogo.Nivel;
@@ -44,7 +44,7 @@ public class CrearPreguntaDialogController implements Initializable {
     @FXML private Spinner<Double> spinnerPorcentajeDefecto;
     @FXML private ComboBox<Pregunta> comboPreguntaPadre;
 
-    @FXML private VBox vboxOpcionesPregunta;
+    @FXML private VBox vboxOpcionesPregunta; // Usado por Selección Múltiple y ahora por Seleccion Unica (ID 5)
     @FXML private VBox contenedorDinamicoOpciones;
     @FXML private Button btnAnadirOpcion;
 
@@ -63,22 +63,26 @@ public class CrearPreguntaDialogController implements Initializable {
     @FXML private Button btnAnadirParRelacionar;
     @FXML private ScrollPane scrollPaneRelacionarConceptos;
 
+    // Este VBox y TextField ya no se usarán para "Seleccion Unica" (ID 5)
+    // Si tienes otro tipo de pregunta que sea de respuesta abierta simple, necesitarías una lógica diferente.
     @FXML private VBox vboxSeleccionUnica;
     @FXML private TextField txtRespuestaSeleccionUnica;
 
     @FXML private Button btnGuardarPregunta;
     @FXML private Button btnCancelarCreacion;
 
-    private static final String TIPO_ORDENAR_CONCEPTOS = "Ordenar conceptos";
-    private static final String TIPO_RELACIONAR_CONCEPTOS = "Relacionar conceptos";
-    private static final String TIPO_SELECCION_UNICA = "Seleccion Unica";
+    // Constantes actualizadas según tu aclaración
+    private static final String TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS = "Selección múltiple"; // ID 1
+    private static final String TIPO_VERDADERO_FALSO = "Verdadero/Falso";         // ID 2
+    private static final String TIPO_ORDENAR_CONCEPTOS = "Ordenar conceptos";     // ID 3
+    private static final String TIPO_RELACIONAR_CONCEPTOS = "Relacionar conceptos"; // ID 4
+    private static final String TIPO_SELECCION_UNICA_UNA_CORRECTA = "Seleccion Unica"; // ID 5
 
     private Profesor profesorLogueado;
     private Pregunta preguntaEditando;
     private Pregunta preguntaCreadaOEditada;
     private Stage dialogStage;
 
-    // NUEVOS CAMPOS PARA EL CONTEXTO DEL CURSO DEL EXAMEN
     private Curso cursoContextoExamen;
     private List<Contenido> contenidosValidosParaCursoContexto = new ArrayList<>();
 
@@ -89,9 +93,6 @@ public class CrearPreguntaDialogController implements Initializable {
     private List<TextField> conceptosOrdenarList = new ArrayList<>();
     private List<HBoxParController> paresRelacionarList = new ArrayList<>();
     private List<HBoxOpcionController> opcionesUIList = new ArrayList<>();
-
-    private static final String TIPO_OPCION_MULTIPLE = "Selección Múltiple";
-    private static final String TIPO_VERDADERO_FALSO = "Verdadero/Falso";
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -115,23 +116,19 @@ public class CrearPreguntaDialogController implements Initializable {
         this.dialogStage = dialogStage;
     }
 
-    // MÉTODO MODIFICADO/NUEVO PARA INICIALIZAR CONTEXTO
     public void initData(Profesor profesor, Curso cursoDelExamenSiAplica, Pregunta preguntaAEditar) {
         this.profesorLogueado = profesor;
-        this.cursoContextoExamen = cursoDelExamenSiAplica; // Puede ser null si se llama desde el banco general
+        this.cursoContextoExamen = cursoDelExamenSiAplica;
         this.preguntaEditando = preguntaAEditar;
 
-        cargarCombos(); // Carga combos basado en si cursoContextoExamen es null o no
+        cargarCombos();
 
         if (this.preguntaEditando != null) {
-            setPreguntaParaEdicionInternal(this.preguntaEditando); // Método interno para poblar campos
+            setPreguntaParaEdicionInternal(this.preguntaEditando);
         }
     }
 
-
-    // Método interno para poblar campos cuando se edita una pregunta
     private void setPreguntaParaEdicionInternal(Pregunta pregunta) {
-        // cargarCombos() ya se llamó en initData, así que los combos están listos.
         txtTextoPregunta.setText(pregunta.getTexto());
         if (pregunta.getTiempoEstimado() != null) {
             spinnerTiempoEstimado.getValueFactory().setValue(pregunta.getTiempoEstimado());
@@ -141,11 +138,7 @@ public class CrearPreguntaDialogController implements Initializable {
         }
 
         comboTipoPregunta.setValue(comboTipoPregunta.getItems().stream().filter(tp -> tp != null && tp.getId() == pregunta.getTipoPreguntaId()).findFirst().orElse(null));
-
-        // Seleccionar el contenido, asegurándose que esté en la lista del combo
-        // (que ya está filtrada si hay cursoContextoExamen)
         comboContenido.setValue(comboContenido.getItems().stream().filter(c -> c != null && c.getIdContenido() == pregunta.getContenidoId()).findFirst().orElse(null));
-
         comboNivel.setValue(comboNivel.getItems().stream().filter(n -> n != null && n.getId() == pregunta.getNivelId()).findFirst().orElse(null));
         comboVisibilidad.setValue(comboVisibilidad.getItems().stream().filter(v -> v != null && v.getId() == pregunta.getVisibilidadId()).findFirst().orElse(null));
 
@@ -157,15 +150,14 @@ public class CrearPreguntaDialogController implements Initializable {
             );
         }
 
-        // Cargar opciones específicas del tipo
         if (pregunta.getIdPregunta() > 0) {
             try (Connection conn = ConnectionOracle.conectar()) {
                 List<OpcionPregunta> opcionesExistentes = preguntaRepository.obtenerOpcionesDePregunta(pregunta.getIdPregunta(), conn);
-                TipoPregunta tipoSeleccionado = comboTipoPregunta.getValue(); // Ya debería estar seleccionado
+                TipoPregunta tipoSeleccionado = comboTipoPregunta.getValue();
                 if (tipoSeleccionado != null) {
                     String nombreTipo = tipoSeleccionado.getNombre();
-                    // Lógica para poblar UI de opciones (como ya la tienes)
-                    if (TIPO_OPCION_MULTIPLE.equalsIgnoreCase(nombreTipo)) {
+
+                    if (TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS.equalsIgnoreCase(nombreTipo) || TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(nombreTipo)) {
                         opcionesExistentes.forEach(op -> anadirOpcionUIExistente(op.getRespuesta(), op.getEsCorrecta() == 'S'));
                     } else if (TIPO_VERDADERO_FALSO.equalsIgnoreCase(nombreTipo)) {
                         opcionesExistentes.stream()
@@ -193,13 +185,8 @@ public class CrearPreguntaDialogController implements Initializable {
                             String[] partes = op.getRespuesta().split(":::", 2);
                             if (partes.length == 2) anadirParRelacionarUI(partes[0], partes[1]);
                         });
-                    } else if (TIPO_SELECCION_UNICA.equalsIgnoreCase(nombreTipo)) {
-                        vboxSeleccionUnica.setVisible(true);
-                        vboxSeleccionUnica.setManaged(true);
-                        if (!opcionesExistentes.isEmpty()) {
-                            txtRespuestaSeleccionUnica.setText(opcionesExistentes.get(0).getRespuesta());
-                        }
                     }
+                    // Ya no hay un caso específico para TIPO_SELECCION_UNICA (ID 5) que use txtRespuestaSeleccionUnica
                 }
             } catch (SQLException e) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Error al Cargar Opciones", "No se pudieron cargar las opciones de la pregunta: " + e.getMessage());
@@ -208,14 +195,12 @@ public class CrearPreguntaDialogController implements Initializable {
         }
     }
 
-
     public Pregunta getPreguntaCreadaOEditada() {
         return preguntaCreadaOEditada;
     }
 
     private void cargarCombos() {
         try {
-            // Cargar TipoPregunta, Nivel, Visibilidad (como antes)
             comboTipoPregunta.setItems(FXCollections.observableArrayList(catalogoRepository.listarTiposPregunta()));
             comboTipoPregunta.setConverter(new StringConverter<>() {
                 @Override public String toString(TipoPregunta tp) { return tp == null ? "Seleccione tipo" : tp.getNombre(); }
@@ -234,26 +219,20 @@ public class CrearPreguntaDialogController implements Initializable {
                 @Override public Visibilidad fromString(String s) { return null; }
             });
 
-            // Cargar Contenidos basado en el contexto del curso
             ObservableList<Contenido> contenidosDisponiblesParaCombo = FXCollections.observableArrayList();
-            this.contenidosValidosParaCursoContexto.clear(); // Limpiar lista de validación
+            this.contenidosValidosParaCursoContexto.clear();
 
             if (cursoContextoExamen != null) {
-                // Si el diálogo se abrió desde un examen, mostrar solo contenidos de ese curso
                 List<Contenido> temasDelCurso = contenidoRepository.listarContenidosPorCurso(cursoContextoExamen.getIdCurso());
-                this.contenidosValidosParaCursoContexto.addAll(temasDelCurso); // Guardar para validación
+                this.contenidosValidosParaCursoContexto.addAll(temasDelCurso);
                 contenidosDisponiblesParaCombo.addAll(temasDelCurso);
                 comboContenido.setPromptText("Seleccione tema del curso");
                 if (temasDelCurso.isEmpty()) {
                     mostrarAlerta(Alert.AlertType.WARNING, "Sin Contenidos", "El curso '" + cursoContextoExamen.getNombre() + "' no tiene contenidos definidos. No podrá asociar esta pregunta a un tema específico de este curso.");
-                    // No deshabilitar, permitir crear la pregunta sin asociar a contenido si así se desea,
-                    // o el profesor puede volver y añadir contenidos al curso.
-                    // La validación al guardar se encargará si se intenta guardar con un contenido no válido.
                 }
             } else {
-                // Si se abre desde el banco general (cursoContextoExamen es null), mostrar todos los contenidos
                 List<Contenido> todosLosTemas = contenidoRepository.listarTodosLosContenidos();
-                this.contenidosValidosParaCursoContexto.addAll(todosLosTemas); // Para el banco, todos son "válidos" en este contexto
+                this.contenidosValidosParaCursoContexto.addAll(todosLosTemas);
                 contenidosDisponiblesParaCombo.addAll(todosLosTemas);
                 comboContenido.setPromptText("Seleccione tema/contenido");
             }
@@ -263,14 +242,12 @@ public class CrearPreguntaDialogController implements Initializable {
                 @Override public Contenido fromString(String s) { return null; }
             });
 
-
-            // Cargar preguntas que pueden ser padre
             if (profesorLogueado != null) {
                 Integer idPreguntaActualAExcluir = (preguntaEditando != null) ? preguntaEditando.getIdPregunta() : null;
                 List<Pregunta> preguntasPadreCandidatas = preguntaRepository.listarPreguntasCandidatasPadre(profesorLogueado.getCedula(), idPreguntaActualAExcluir);
 
                 ObservableList<Pregunta> itemsPreguntaPadre = FXCollections.observableArrayList();
-                itemsPreguntaPadre.add(null); // Opción para "Ninguna"
+                itemsPreguntaPadre.add(null);
                 itemsPreguntaPadre.addAll(preguntasPadreCandidatas);
                 comboPreguntaPadre.setItems(itemsPreguntaPadre);
 
@@ -305,12 +282,11 @@ public class CrearPreguntaDialogController implements Initializable {
             vboxOrdenarConceptos.setManaged(false);
             vboxRelacionarConceptos.setVisible(false);
             vboxRelacionarConceptos.setManaged(false);
-            vboxSeleccionUnica.setVisible(false);
+            vboxSeleccionUnica.setVisible(false); // El VBox con TextField para ID 5
             vboxSeleccionUnica.setManaged(false);
 
             boolean tipoCambioOEsNueva = (preguntaEditando == null) ||
                     (preguntaEditando != null && oldValue != null && newValue != null && oldValue.getId() != newValue.getId());
-
 
             if (tipoCambioOEsNueva) {
                 contenedorDinamicoOpciones.getChildren().clear();
@@ -319,7 +295,7 @@ public class CrearPreguntaDialogController implements Initializable {
                 conceptosOrdenarList.clear();
                 contenedorDinamicoRelacionar.getChildren().clear();
                 paresRelacionarList.clear();
-                txtRespuestaSeleccionUnica.clear();
+                txtRespuestaSeleccionUnica.clear(); // Limpiar el TextField por si acaso
                 if (grupoVerdaderoFalso.getSelectedToggle() != null) {
                     grupoVerdaderoFalso.getSelectedToggle().setSelected(false);
                 }
@@ -327,10 +303,17 @@ public class CrearPreguntaDialogController implements Initializable {
 
             if (newValue != null) {
                 String tipoSeleccionado = newValue.getNombre();
-                if (TIPO_OPCION_MULTIPLE.equalsIgnoreCase(tipoSeleccionado)) {
+                if (TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS.equalsIgnoreCase(tipoSeleccionado) ||
+                        TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(tipoSeleccionado) ) { // ID 1 y ID 5 usan vboxOpcionesPregunta
                     vboxOpcionesPregunta.setVisible(true);
                     vboxOpcionesPregunta.setManaged(true);
-                    if (tipoCambioOEsNueva && opcionesUIList.isEmpty() && (preguntaEditando == null || !TIPO_OPCION_MULTIPLE.equalsIgnoreCase(oldValue != null ? oldValue.getNombre() : ""))) {
+                    if (tipoCambioOEsNueva && opcionesUIList.isEmpty() &&
+                            (preguntaEditando == null ||
+                                    !( (TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS.equalsIgnoreCase(oldValue != null ? oldValue.getNombre() : "")) ||
+                                            (TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(oldValue != null ? oldValue.getNombre() : ""))
+                                    )
+                            )
+                    ) {
                         handleAnadirOpcion(null);
                         handleAnadirOpcion(null);
                     }
@@ -350,15 +333,13 @@ public class CrearPreguntaDialogController implements Initializable {
                     if (tipoCambioOEsNueva && paresRelacionarList.isEmpty() && (preguntaEditando == null || !TIPO_RELACIONAR_CONCEPTOS.equalsIgnoreCase(oldValue != null ? oldValue.getNombre() : ""))) {
                         handleAnadirParRelacionar(null);
                     }
-                } else if (TIPO_SELECCION_UNICA.equalsIgnoreCase(tipoSeleccionado)) {
-                    vboxSeleccionUnica.setVisible(true);
-                    vboxSeleccionUnica.setManaged(true);
                 }
+                // Ya no hay un 'else if' para TIPO_SELECCION_UNICA que muestre vboxSeleccionUnica (con el TextField)
             }
         });
     }
 
-    private void anadirConceptoOrdenarUI(String texto) { // Para la carga en edición
+    private void anadirConceptoOrdenarUI(String texto) {
         HBox hboxConcepto = new HBox(10);
         hboxConcepto.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         TextField textoConcepto = new TextField(texto);
@@ -377,7 +358,7 @@ public class CrearPreguntaDialogController implements Initializable {
         contenedorDinamicoOrdenar.getChildren().add(hboxConcepto);
     }
 
-    private void anadirParRelacionarUI(String textoA, String textoB) { // Para la carga en edición
+    private void anadirParRelacionarUI(String textoA, String textoB) {
         HBox hboxPar = new HBox(10);
         hboxPar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
@@ -405,10 +386,9 @@ public class CrearPreguntaDialogController implements Initializable {
         contenedorDinamicoRelacionar.getChildren().add(hboxPar);
     }
 
-
     @FXML
     private void handleAnadirConceptoOrdenar(ActionEvent event) {
-        anadirConceptoOrdenarUI(""); // Llama al método que crea la UI
+        anadirConceptoOrdenarUI("");
     }
 
     @FXML
@@ -442,11 +422,10 @@ public class CrearPreguntaDialogController implements Initializable {
         contenedorDinamicoOpciones.getChildren().add(nuevaOpcionUI);
     }
 
-
     @FXML
     private void handleGuardarPregunta(ActionEvent event) {
         if (profesorLogueado == null) {
-            mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se ha identificado al profesor. No se puede guardar la pregunta.");
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se ha identificado al profesor.");
             return;
         }
         if (txtTextoPregunta.getText().trim().isEmpty() ||
@@ -458,9 +437,8 @@ public class CrearPreguntaDialogController implements Initializable {
             return;
         }
 
-        Contenido contenidoSeleccionado = comboContenido.getValue(); // Ya no puede ser null por la validación anterior
+        Contenido contenidoSeleccionado = comboContenido.getValue();
 
-        // VALIDACIÓN DE CONTENIDO SI ESTAMOS EN CONTEXTO DE EXAMEN
         if (cursoContextoExamen != null) {
             boolean contenidoEsValidoParaCurso = this.contenidosValidosParaCursoContexto.stream()
                     .anyMatch(c -> c.getIdContenido() == contenidoSeleccionado.getIdContenido());
@@ -472,7 +450,6 @@ public class CrearPreguntaDialogController implements Initializable {
                 return;
             }
         }
-
 
         Integer tiempoEstimado = null;
         try {
@@ -490,7 +467,7 @@ public class CrearPreguntaDialogController implements Initializable {
         preguntaAGuardar.setTiempoEstimado(tiempoEstimado);
         preguntaAGuardar.setPorcentaje(BigDecimal.valueOf(spinnerPorcentajeDefecto.getValue()));
         preguntaAGuardar.setTipoPreguntaId(comboTipoPregunta.getValue().getId());
-        preguntaAGuardar.setContenidoId(contenidoSeleccionado.getIdContenido()); // Usar el validado
+        preguntaAGuardar.setContenidoId(contenidoSeleccionado.getIdContenido());
         preguntaAGuardar.setNivelId(comboNivel.getValue().getId());
         preguntaAGuardar.setVisibilidadId(comboVisibilidad.getValue().getId());
         preguntaAGuardar.setCreadorCedulaProfesor((int) profesorLogueado.getCedula());
@@ -502,15 +479,15 @@ public class CrearPreguntaDialogController implements Initializable {
         }
 
         List<OpcionPregunta> opcionesParaGuardar = new ArrayList<>();
-        TipoPregunta tipoSeleccionado = comboTipoPregunta.getValue();
+        TipoPregunta tipoSeleccionadoObj = comboTipoPregunta.getValue();
+        String nombreTipoSeleccionado = tipoSeleccionadoObj.getNombre();
 
-        // ... (Lógica para recolectar opciones para cada tipo de pregunta, como ya la tienes)
-        if (TIPO_OPCION_MULTIPLE.equalsIgnoreCase(tipoSeleccionado.getNombre())) {
+        if (TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS.equalsIgnoreCase(nombreTipoSeleccionado)) {
             if (opcionesUIList.size() < 2) {
-                mostrarAlerta(Alert.AlertType.ERROR, "Opciones Insuficientes", "Debe añadir al menos dos opciones para este tipo de pregunta.");
+                mostrarAlerta(Alert.AlertType.ERROR, "Opciones Insuficientes", "Debe añadir al menos dos opciones para 'Selección Múltiple'.");
                 return;
             }
-            boolean alMenosUnaCorrecta = false;
+            int correctasMarcadas = 0;
             for (HBoxOpcionController opcionUI : opcionesUIList) {
                 if (opcionUI.getTextoOpcion().trim().isEmpty()) {
                     mostrarAlerta(Alert.AlertType.ERROR, "Opción Vacía", "El texto de todas las opciones es obligatorio.");
@@ -519,14 +496,39 @@ public class CrearPreguntaDialogController implements Initializable {
                 OpcionPregunta op = new OpcionPregunta();
                 op.setRespuesta(opcionUI.getTextoOpcion().trim());
                 op.setEsCorrecta(opcionUI.esCorrecta() ? 'S' : 'N');
-                if (op.getEsCorrecta() == 'S') alMenosUnaCorrecta = true;
+                if (op.getEsCorrecta() == 'S') {
+                    correctasMarcadas++;
+                }
                 opcionesParaGuardar.add(op);
             }
-            if (!alMenosUnaCorrecta) {
+            if (correctasMarcadas == 0) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Sin Respuesta Correcta", "Debe marcar al menos una opción como correcta para 'Selección Múltiple'.");
                 return;
             }
-        } else if (TIPO_VERDADERO_FALSO.equalsIgnoreCase(tipoSeleccionado.getNombre())) {
+        } else if (TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(nombreTipoSeleccionado)) { // ID 5
+            if (opcionesUIList.size() < 2) {
+                mostrarAlerta(Alert.AlertType.ERROR, "Opciones Insuficientes", "Debe añadir al menos dos opciones para 'Seleccion Unica'.");
+                return;
+            }
+            int correctasMarcadas = 0;
+            for (HBoxOpcionController opcionUI : opcionesUIList) {
+                if (opcionUI.getTextoOpcion().trim().isEmpty()) {
+                    mostrarAlerta(Alert.AlertType.ERROR, "Opción Vacía", "El texto de todas las opciones es obligatorio.");
+                    return;
+                }
+                OpcionPregunta op = new OpcionPregunta();
+                op.setRespuesta(opcionUI.getTextoOpcion().trim());
+                op.setEsCorrecta(opcionUI.esCorrecta() ? 'S' : 'N');
+                if (op.getEsCorrecta() == 'S') {
+                    correctasMarcadas++;
+                }
+                opcionesParaGuardar.add(op);
+            }
+            if (correctasMarcadas != 1) {
+                mostrarAlerta(Alert.AlertType.ERROR, "Respuesta Correcta Inválida", "Para 'Seleccion Unica', debe marcar exactamente una opción como correcta. Encontradas: " + correctasMarcadas);
+                return;
+            }
+        } else if (TIPO_VERDADERO_FALSO.equalsIgnoreCase(nombreTipoSeleccionado)) {
             if (grupoVerdaderoFalso.getSelectedToggle() == null) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Selección Requerida", "Debe seleccionar si la respuesta es Verdadera o Falsa.");
                 return;
@@ -540,7 +542,7 @@ public class CrearPreguntaDialogController implements Initializable {
             opFalso.setRespuesta("Falso");
             opFalso.setEsCorrecta(radioFalso.isSelected() ? 'S' : 'N');
             opcionesParaGuardar.add(opFalso);
-        }else if (TIPO_ORDENAR_CONCEPTOS.equalsIgnoreCase(tipoSeleccionado.getNombre())) {
+        }else if (TIPO_ORDENAR_CONCEPTOS.equalsIgnoreCase(nombreTipoSeleccionado)) {
             if (conceptosOrdenarList.size() < 2) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Conceptos Insuficientes", "Debe añadir al menos dos conceptos para ordenar.");
                 return;
@@ -553,10 +555,11 @@ public class CrearPreguntaDialogController implements Initializable {
                 }
                 OpcionPregunta op = new OpcionPregunta();
                 op.setRespuesta(textoConcepto);
-                op.setEsCorrecta('S');
+                op.setEsCorrecta('S'); // Todas son parte de la secuencia correcta
+                // La secuencia se determinará por el orden en p_opciones en PL/SQL
                 opcionesParaGuardar.add(op);
             }
-        } else if (TIPO_RELACIONAR_CONCEPTOS.equalsIgnoreCase(tipoSeleccionado.getNombre())) {
+        } else if (TIPO_RELACIONAR_CONCEPTOS.equalsIgnoreCase(nombreTipoSeleccionado)) {
             if (paresRelacionarList.isEmpty()) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Pares Insuficientes", "Debe añadir al menos un par de conceptos a relacionar.");
                 return;
@@ -569,22 +572,12 @@ public class CrearPreguntaDialogController implements Initializable {
                     return;
                 }
                 OpcionPregunta op = new OpcionPregunta();
-                op.setRespuesta(conceptoA + ":::" + conceptoB);
-                op.setEsCorrecta('S');
+                op.setRespuesta(conceptoA + ":::" + conceptoB); // Separador para el par
+                op.setEsCorrecta('S'); // El par en sí es la "respuesta"
                 opcionesParaGuardar.add(op);
             }
-        } else if (TIPO_SELECCION_UNICA.equalsIgnoreCase(tipoSeleccionado.getNombre())) {
-            String respuestaUnica = txtRespuestaSeleccionUnica.getText().trim();
-            if (respuestaUnica.isEmpty()) {
-                mostrarAlerta(Alert.AlertType.ERROR, "Respuesta Vacía", "Debe ingresar la respuesta correcta para la selección única.");
-                return;
-            }
-            OpcionPregunta op = new OpcionPregunta();
-            op.setRespuesta(respuestaUnica);
-            op.setEsCorrecta('S');
-            opcionesParaGuardar.add(op);
         }
-
+        // Ya no hay lógica para el antiguo TIPO_SELECCION_UNICA con TextField aquí.
 
         try {
             if (preguntaEditando == null) {
@@ -652,6 +645,6 @@ public class CrearPreguntaDialogController implements Initializable {
 
     @FXML
     private void handleAnadirParRelacionar(ActionEvent event) {
-        anadirParRelacionarUI("",""); // Llama al método que crea la UI
+        anadirParRelacionarUI("","");
     }
 }

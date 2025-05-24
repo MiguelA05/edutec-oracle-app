@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -16,7 +17,7 @@ public class Examen {
     private String nombre;
     private Integer numeroPreguntas;
     private Date fecha;
-    private Date hora; // Similar a HorarioClase.hora_inicio
+    private LocalDateTime hora; // Similar a HorarioClase.hora_inicio
     private BigDecimal calificacionMinAprobatoria; // NUMBER(5,2)
     private BigDecimal pesoCurso; // NUMBER(5,2)
     private String descripcion;
@@ -24,7 +25,7 @@ public class Examen {
     private Integer categoriaId; // FK
     private Integer cursoId; // FK
 
-    public Examen(int id, Integer tiempo, String nombre, Integer numeroPreguntas, Date fecha, Date hora,
+    public Examen(int id, Integer tiempo, String nombre, Integer numeroPreguntas, Date fecha, LocalDateTime hora,
                   BigDecimal calificacionMinAprobatoria, BigDecimal pesoCurso, String descripcion,
                   Integer creacionId, Integer categoriaId, Integer cursoId) {
         this.id = id;

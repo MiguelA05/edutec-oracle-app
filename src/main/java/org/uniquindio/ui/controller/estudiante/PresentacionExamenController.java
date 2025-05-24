@@ -7,27 +7,36 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.uniquindio.model.dto.PreguntaPresentacionDTO;
 import org.uniquindio.model.dto.ResultadoExamenDTO;
-import org.uniquindio.model.entity.evaluacion.Examen; // Para obtener el tiempo total del examen
+import org.uniquindio.model.entity.evaluacion.Examen;
 import org.uniquindio.model.entity.usuario.Estudiante;
-import org.uniquindio.repository.impl.ExamenRepositoryImpl; // Para interactuar con la BD
+import org.uniquindio.repository.impl.ExamenRepositoryImpl;
 
 import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class PresentacionExamenController implements Initializable {
 
@@ -42,73 +51,76 @@ public class PresentacionExamenController implements Initializable {
     @FXML private Label lblTiempoSugeridoPregunta;
     @FXML private VBox contenedorOpcionesRespuesta;
     @FXML private Button btnAnterior;
-    @FXML private Button btnMarcarParaRevision; // Funcionalidad futura o simple marca visual
+    @FXML private Button btnMarcarParaRevision;
     @FXML private Button btnSiguiente;
     @FXML private Button btnFinalizarExamen;
 
     private Estudiante estudianteLogueado;
-    private int idExamen; // ID del Examen que se está presentando
-    private int idPresentacionExamen; // ID del intento actual (PresentacionExamen.id)
-    private Examen infoExamen; // Para obtener el tiempo total
+    private int idExamen;
+    private int idPresentacionExamen;
+    private Examen infoExamen;
 
     private List<PreguntaPresentacionDTO> preguntasDelExamen;
     private int preguntaActualIndex = 0;
-    private Map<Integer, Object> respuestasEstudiante = new HashMap<>(); // Key: preguntaExamenEstudianteId, Value: respuesta (String o Integer para ID de opción)
+    // Key: ID de PreguntaExamenEstudiante
+    // Value: Para selección única/V-F: Integer (ID de OpcionPregunta)
+    //        Para selección múltiple: List<Integer> (IDs de OpcionPregunta seleccionadas)
+    //        Para texto/ordenar/relacionar: String
+    private Map<Integer, Object> respuestasEstudiante = new HashMap<>();
     private Map<Integer, Boolean> preguntasMarcadasRevision = new HashMap<>();
-
 
     private Timeline temporizadorExamen;
     private long tiempoRestanteSegundos;
 
     private ExamenRepositoryImpl examenRepository = new ExamenRepositoryImpl();
 
+    // Constantes para los nombres de tipos de pregunta (deben coincidir con los de la BD)
+    private static final String TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS = "Selección múltiple"; // ID 1 (Ahora con múltiples respuestas posibles)
+    private static final String TIPO_VERDADERO_FALSO = "Verdadero/Falso";         // ID 2
+    private static final String TIPO_ORDENAR_CONCEPTOS = "Ordenar conceptos";     // ID 3
+    private static final String TIPO_RELACIONAR_CONCEPTOS = "Relacionar conceptos"; // ID 4
+    private static final String TIPO_SELECCION_UNICA_UNA_CORRECTA = "Seleccion Unica"; // ID 5 (Múltiples opciones, una correcta)
+
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // La inicialización de datos se hará a través de initData
+        // initData se llama externamente
     }
 
-    /**
-     * Inicializa los datos necesarios para comenzar la presentación del examen.
-     * Este método debe ser llamado desde el controlador que carga esta vista.
-     * @param estudiante El estudiante que presenta el examen.
-     * @param examenId El ID del examen a presentar.
-     * @param presentacionExamenId El ID del registro de PresentacionExamen (intento actual).
-     * @param infoExamenGeneral El objeto Examen con datos generales como el tiempo total.
-     */
     public void initData(Estudiante estudiante, int examenId, int presentacionExamenId, Examen infoExamenGeneral) {
         this.estudianteLogueado = estudiante;
         this.idExamen = examenId;
         this.idPresentacionExamen = presentacionExamenId;
         this.infoExamen = infoExamenGeneral;
 
-        if (this.infoExamen != null && this.infoExamen.getDescripcion() != null) {
-            lblTituloExamen.setText(this.infoExamen.getDescripcion()); // O el nombre si lo tienes
+        if (this.infoExamen != null && this.infoExamen.getNombre() != null && !this.infoExamen.getNombre().isEmpty()) {
+            lblTituloExamen.setText(this.infoExamen.getNombre());
         } else {
             lblTituloExamen.setText("Examen en Curso");
         }
 
-        cargarPreguntasDelExamen();
+        cargarPreguntasDelExamen(); // Esto también llama a mostrarPreguntaActual
         if (this.infoExamen != null && this.infoExamen.getTiempo() != null && this.infoExamen.getTiempo() > 0) {
-            iniciarTemporizador(this.infoExamen.getTiempo() * 60); // Convertir minutos a segundos
+            iniciarTemporizador((long)this.infoExamen.getTiempo() * 60);
         } else {
             lblTiempoRestante.setText("Tiempo: Ilimitado");
-            progressBarTiempo.setProgress(1.0); // O ocultarlo
+            progressBarTiempo.setProgress(1.0);
+            progressBarTiempo.setVisible(false);
         }
     }
 
     private void cargarPreguntasDelExamen() {
         try {
-            // Llamar al repositorio para obtener las preguntas para esta presentación específica
             this.preguntasDelExamen = examenRepository.obtenerPreguntasParaPresentacion(this.idPresentacionExamen);
-
             if (this.preguntasDelExamen == null || this.preguntasDelExamen.isEmpty()) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Error de Examen", "No se pudieron cargar las preguntas para este examen.");
-                // Considerar cerrar la ventana o volver al dashboard
+                btnSiguiente.setDisable(true);
+                btnAnterior.setDisable(true);
+                btnFinalizarExamen.setDisable(true);
                 return;
             }
             preguntaActualIndex = 0;
-            mostrarPreguntaActual();
-            actualizarEstadoBotonesNavegacion();
+            mostrarPreguntaActual(); // Llama a renderizar y actualizar botones
         } catch (SQLException e) {
             System.err.println("Error SQL al cargar preguntas del examen: " + e.getMessage());
             e.printStackTrace();
@@ -125,7 +137,7 @@ public class PresentacionExamenController implements Initializable {
         lblTextoPregunta.setText(preguntaActual.getTextoPregunta());
         lblTipoPreguntaInfo.setText("(Tipo: " + preguntaActual.getTipoPreguntaNombre() + ")");
 
-        if (preguntaActual.getTiempoSugerido() != null && !preguntaActual.getTiempoSugerido().isEmpty()) {
+        if (preguntaActual.getTiempoSugerido() != null && !preguntaActual.getTiempoSugerido().isEmpty() && !preguntaActual.getTiempoSugerido().equals("0 min")) {
             lblTiempoSugeridoPregunta.setText("Tiempo sugerido: " + preguntaActual.getTiempoSugerido());
             lblTiempoSugeridoPregunta.setVisible(true);
             lblTiempoSugeridoPregunta.setManaged(true);
@@ -137,58 +149,129 @@ public class PresentacionExamenController implements Initializable {
         lblProgresoPreguntas.setText("Pregunta " + (preguntaActualIndex + 1) + " de " + preguntasDelExamen.size());
         renderizarOpcionesRespuesta(preguntaActual);
         actualizarEstadoBotonesNavegacion();
-
-        // Actualizar estado del botón de marcar para revisión
         btnMarcarParaRevision.setText(
                 preguntasMarcadasRevision.getOrDefault(preguntaActual.getPreguntaExamenEstudianteId(), false) ?
-                        "Desmarcar Pregunta" : "Marcar para Revisión"
+                        "Desmarcar" : "Marcar"
         );
     }
 
+    @SuppressWarnings("unchecked") // Para el casteo de respuestaGuardada a List<Integer>
     private void renderizarOpcionesRespuesta(PreguntaPresentacionDTO pregunta) {
         contenedorOpcionesRespuesta.getChildren().clear();
-        // TODO: Implementar la lógica para renderizar diferentes tipos de pregunta
-        // Basado en pregunta.getTipoPreguntaId() o pregunta.getTipoPreguntaNombre()
-        // Ejemplo para Opción Múltiple (asumiendo tipo ID 1 es opción única, 2 es múltiple)
-        // if (pregunta.getTipoPreguntaId() == 1) { // Opción Única
-        //     ToggleGroup grupoOpciones = new ToggleGroup();
-        //     for (PreguntaPresentacionDTO.OpcionPresentacionDTO opcion : pregunta.getOpciones()) {
-        //         RadioButton rb = new RadioButton(opcion.getTextoOpcion());
-        //         rb.setUserData(opcion.getIdOpcion()); // Guardar el ID de la opción
-        //         rb.setToggleGroup(grupoOpciones);
-        //         contenedorOpcionesRespuesta.getChildren().add(rb);
-        //         // Restaurar selección si ya se respondió
-        //         Object respuestaGuardada = respuestasEstudiante.get(pregunta.getPreguntaExamenEstudianteId());
-        //         if (respuestaGuardada != null && respuestaGuardada.equals(opcion.getIdOpcion())) {
-        //             rb.setSelected(true);
-        //         }
-        //     }
-        // } else if (pregunta.getTipoPreguntaId() == 2) { // Opción Múltiple (varias respuestas)
-        //     for (PreguntaPresentacionDTO.OpcionPresentacionDTO opcion : pregunta.getOpciones()) {
-        //         CheckBox cb = new CheckBox(opcion.getTextoOpcion());
-        //         cb.setUserData(opcion.getIdOpcion());
-        //         contenedorOpcionesRespuesta.getChildren().add(cb);
-        //         // Restaurar selección
-        //         Object respuestaGuardada = respuestasEstudiante.get(pregunta.getPreguntaExamenEstudianteId());
-        //         if (respuestaGuardada instanceof List && ((List<Integer>)respuestaGuardada).contains(opcion.getIdOpcion())) {
-        //             cb.setSelected(true);
-        //         }
-        //     }
-        // } else if ("Verdadero/Falso".equalsIgnoreCase(pregunta.getTipoPreguntaNombre())) {
-        //     // ... Lógica para V/F ...
-        // } else { // Pregunta abierta
-        //     TextArea taRespuesta = new TextArea();
-        //     taRespuesta.setPromptText("Escriba su respuesta...");
-        //     taRespuesta.setPrefRowCount(5);
-        //     Object respuestaGuardada = respuestasEstudiante.get(pregunta.getPreguntaExamenEstudianteId());
-        //     if (respuestaGuardada instanceof String) {
-        //         taRespuesta.setText((String) respuestaGuardada);
-        //     }
-        //     contenedorOpcionesRespuesta.getChildren().add(taRespuesta);
-        // }
-        // Placeholder
-        Label placeholder = new Label("Renderizado de opciones/respuesta para tipo '" + pregunta.getTipoPreguntaNombre() + "' aún no implementado.");
-        contenedorOpcionesRespuesta.getChildren().add(placeholder);
+        String tipoNombre = pregunta.getTipoPreguntaNombre();
+        Object respuestaGuardada = respuestasEstudiante.get(pregunta.getPreguntaExamenEstudianteId());
+
+        if (TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS.equalsIgnoreCase(tipoNombre)) { // ID 1 - Múltiples correctas
+            if (pregunta.getOpciones() != null) {
+                for (PreguntaPresentacionDTO.OpcionPresentacionDTO opcion : pregunta.getOpciones()) {
+                    CheckBox cb = new CheckBox(opcion.getTextoOpcion());
+                    cb.setUserData(opcion.getIdOpcion());
+                    cb.setWrapText(true);
+                    contenedorOpcionesRespuesta.getChildren().add(cb);
+                    if (respuestaGuardada instanceof List) {
+                        List<Integer> idsSeleccionados = (List<Integer>) respuestaGuardada;
+                        if (idsSeleccionados.contains(opcion.getIdOpcion())) {
+                            cb.setSelected(true);
+                        }
+                    }
+                }
+            }
+        } else if (TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(tipoNombre) || TIPO_VERDADERO_FALSO.equalsIgnoreCase(tipoNombre)) { // ID 5 y ID 2
+            ToggleGroup grupoOpciones = new ToggleGroup();
+            if (pregunta.getOpciones() != null) {
+                for (PreguntaPresentacionDTO.OpcionPresentacionDTO opcion : pregunta.getOpciones()) {
+                    RadioButton rb = new RadioButton(opcion.getTextoOpcion());
+                    rb.setUserData(opcion.getIdOpcion());
+                    rb.setToggleGroup(grupoOpciones);
+                    rb.setWrapText(true);
+                    contenedorOpcionesRespuesta.getChildren().add(rb);
+                    if (respuestaGuardada != null && respuestaGuardada.equals(opcion.getIdOpcion())) {
+                        rb.setSelected(true);
+                    }
+                }
+            }
+        } else if (TIPO_ORDENAR_CONCEPTOS.equalsIgnoreCase(tipoNombre)) {
+            Label info = new Label("Ordene los siguientes conceptos arrastrándolos:");
+            VBox conceptosBox = new VBox(5);
+            conceptosBox.getStyleClass().add("conceptos-ordenar-box");
+
+            List<String> conceptosAOrdenar = new ArrayList<>();
+            if (pregunta.getOpciones() != null) {
+                pregunta.getOpciones().forEach(op -> conceptosAOrdenar.add(op.getTextoOpcion()));
+            }
+
+            if (respuestaGuardada instanceof String && !((String)respuestaGuardada).isEmpty()){
+                conceptosAOrdenar.clear();
+                conceptosAOrdenar.addAll(Arrays.asList(((String)respuestaGuardada).split(":::")));
+            } else {
+                Collections.shuffle(conceptosAOrdenar);
+            }
+
+            for(String concepto : conceptosAOrdenar) {
+                Label lblConcepto = new Label(concepto);
+                lblConcepto.getStyleClass().add("concepto-ordenar-item");
+                configurarDragAndDrop(lblConcepto, conceptosBox);
+                conceptosBox.getChildren().add(lblConcepto);
+            }
+            contenedorOpcionesRespuesta.getChildren().addAll(info, conceptosBox);
+
+        } else if (TIPO_RELACIONAR_CONCEPTOS.equalsIgnoreCase(tipoNombre)) {
+            Label info = new Label("Implementar UI para relacionar conceptos.");
+            contenedorOpcionesRespuesta.getChildren().add(info);
+        } else {
+            Label placeholder = new Label("Tipo de pregunta '" + tipoNombre + "' no implementado para renderizar.");
+            contenedorOpcionesRespuesta.getChildren().add(placeholder);
+        }
+    }
+
+    private void configurarDragAndDrop(Label label, VBox parentContainer) {
+        label.setOnDragDetected(event -> {
+            Dragboard db = label.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent content = new ClipboardContent();
+            content.putString(label.getText());
+            db.setContent(content);
+            event.consume();
+        });
+
+        parentContainer.setOnDragOver(event -> {
+            if (event.getGestureSource() != parentContainer && event.getDragboard().hasString()) {
+                event.acceptTransferModes(TransferMode.MOVE);
+            }
+            event.consume();
+        });
+
+        parentContainer.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasString()) {
+                //String draggedText = db.getString(); // No es necesario si usamos la fuente
+                Label sourceLabel = null;
+
+                if(event.getGestureSource() instanceof Label){
+                    sourceLabel = (Label)event.getGestureSource();
+                }
+
+                if (sourceLabel != null && parentContainer.getChildren().contains(sourceLabel)) {
+                    int newIndex = 0;
+                    for (javafx.scene.Node node : parentContainer.getChildren()) {
+                        if (node == sourceLabel) continue;
+                        if (event.getY() < node.getBoundsInParent().getMinY() + node.getBoundsInParent().getHeight() / 2) {
+                            break;
+                        }
+                        newIndex++;
+                    }
+                    parentContainer.getChildren().remove(sourceLabel);
+                    if (newIndex >= parentContainer.getChildren().size()) { // >= para añadir al final si es necesario
+                        parentContainer.getChildren().add(sourceLabel);
+                    } else {
+                        parentContainer.getChildren().add(newIndex, sourceLabel);
+                    }
+                    success = true;
+                }
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
     }
 
     private void guardarRespuestaActual() {
@@ -197,52 +280,95 @@ public class PresentacionExamenController implements Initializable {
         }
         PreguntaPresentacionDTO preguntaActual = preguntasDelExamen.get(preguntaActualIndex);
         int preguntaExamenEstId = preguntaActual.getPreguntaExamenEstudianteId();
-        Object respuesta = null;
-        String respuestaDadaTexto = null;
-        Integer opcionIdSeleccionada = null;
+        Object respuestaParaGuardarLocalmente = null;
+        String respuestaDadaTextoParaBD = null;
+        Integer opcionIdSeleccionadaParaBD = null; // Para tipos de una sola opción
 
-        // TODO: Implementar lógica para obtener la respuesta según el tipo de pregunta renderizado
-        // Ejemplo para Opción Única (RadioButton)
-        // Node primerNodo = contenedorOpcionesRespuesta.getChildren().isEmpty() ? null : contenedorOpcionesRespuesta.getChildren().get(0);
-        // if (primerNodo instanceof RadioButton) { // Asumiendo que todas son RadioButton para este tipo
-        //     ToggleGroup grupo = ((RadioButton) primerNodo).getToggleGroup();
-        //     RadioButton seleccionada = (RadioButton) grupo.getSelectedToggle();
-        //     if (seleccionada != null) {
-        //         respuesta = seleccionada.getUserData(); // ID de la opción
-        //         opcionIdSeleccionada = (Integer) respuesta;
-        //     }
-        // } else if (primerNodo instanceof TextArea) { // Pregunta abierta
-        //     respuesta = ((TextArea) primerNodo).getText();
-        //     respuestaDadaTexto = (String) respuesta;
-        // } else if (primerNodo instanceof CheckBox) { // Opción Múltiple (varias respuestas)
-        //     List<Integer> idsSeleccionados = new ArrayList<>();
-        //     for(Node nodoOpcion : contenedorOpcionesRespuesta.getChildren()){
-        //         if(nodoOpcion instanceof CheckBox && ((CheckBox)nodoOpcion).isSelected()){
-        //             idsSeleccionados.add((Integer) nodoOpcion.getUserData());
-        //         }
-        //     }
-        //     respuesta = idsSeleccionados; // Guardar lista de IDs
-        //     // Para registrar en BD, podrías necesitar enviar esto de forma especial
-        //     // o tener un PROC_REGISTRAR_RESPUESTA_MULTIPLE
-        // }
+        String tipoNombre = preguntaActual.getTipoPreguntaNombre();
 
-
-        if (respuesta != null) {
-            respuestasEstudiante.put(preguntaExamenEstId, respuesta);
-            try {
-                // El PL/SQL PROC_REGISTRAR_RESPUESTA debe manejar si es texto o ID de opción
-                examenRepository.registrarRespuestaEstudiante(preguntaExamenEstId, respuestaDadaTexto, opcionIdSeleccionada);
-                System.out.println("Respuesta guardada para PEE ID: " + preguntaExamenEstId);
-            } catch (SQLException e) {
-                System.err.println("Error SQL al guardar respuesta: " + e.getMessage());
-                // Considerar reintentar o notificar al usuario
+        if (TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS.equalsIgnoreCase(tipoNombre)) { // ID 1
+            List<Integer> idsSeleccionados = new ArrayList<>();
+            for(javafx.scene.Node node : contenedorOpcionesRespuesta.getChildren()){
+                if(node instanceof CheckBox && ((CheckBox)node).isSelected()){
+                    idsSeleccionados.add((Integer) node.getUserData());
+                }
             }
-        } else {
-            // Si no se seleccionó nada, se podría eliminar una respuesta previa o no hacer nada
-            // respuestasEstudiante.remove(preguntaExamenEstId);
+            if (!idsSeleccionados.isEmpty()) {
+                respuestaParaGuardarLocalmente = idsSeleccionados;
+                // Para la BD, concatenamos los IDs en respuestaDadaTextoParaBD
+                // El PL/SQL PROC_REGISTRAR_RESPUESTA y ES_PREGUNTA_CORRECTA necesitarán manejar esto.
+                respuestaDadaTextoParaBD = idsSeleccionados.stream().map(String::valueOf).collect(Collectors.joining(","));
+                opcionIdSeleccionadaParaBD = null; // No aplica un único ID de opción
+            } else {
+                respuestaParaGuardarLocalmente = null; // O una lista vacía si se prefiere
+                respuestaDadaTextoParaBD = null;
+            }
+        } else if (TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(tipoNombre) || TIPO_VERDADERO_FALSO.equalsIgnoreCase(tipoNombre)) { // ID 5 y ID 2
+            ToggleGroup grupo = null;
+            if (!contenedorOpcionesRespuesta.getChildren().isEmpty()) {
+                for(javafx.scene.Node node : contenedorOpcionesRespuesta.getChildren()){
+                    if (node instanceof RadioButton) {
+                        grupo = ((RadioButton)node).getToggleGroup();
+                        break;
+                    }
+                }
+            }
+            if (grupo != null) {
+                RadioButton seleccionada = (RadioButton) grupo.getSelectedToggle();
+                if (seleccionada != null) {
+                    opcionIdSeleccionadaParaBD = (Integer) seleccionada.getUserData();
+                    respuestaParaGuardarLocalmente = opcionIdSeleccionadaParaBD;
+                    // respuestaDadaTextoParaBD podría ser seleccionada.getText() si el PL/SQL lo necesita
+                }
+            }
+        } else if (TIPO_ORDENAR_CONCEPTOS.equalsIgnoreCase(tipoNombre)) {
+            VBox conceptosBox = null;
+            for(javafx.scene.Node node : contenedorOpcionesRespuesta.getChildren()){
+                if(node.getStyleClass().contains("conceptos-ordenar-box") && node instanceof VBox){
+                    conceptosBox = (VBox) node;
+                    break;
+                }
+            }
+            if (conceptosBox != null) {
+                List<String> orderedConceptTexts = new ArrayList<>();
+                for (javafx.scene.Node nodeLabel : conceptosBox.getChildren()) {
+                    if (nodeLabel instanceof Label) {
+                        orderedConceptTexts.add(((Label) nodeLabel).getText());
+                    }
+                }
+                if (!orderedConceptTexts.isEmpty()) {
+                    respuestaDadaTextoParaBD = String.join(":::", orderedConceptTexts);
+                    respuestaParaGuardarLocalmente = respuestaDadaTextoParaBD;
+                }
+            }
+        } else if (TIPO_RELACIONAR_CONCEPTOS.equalsIgnoreCase(tipoNombre)) {
+            // TODO: Implementar la obtención de respuesta para relacionar conceptos
+            respuestaDadaTextoParaBD = "Respuesta_Relacionar_Conceptos_Placeholder";
+            respuestaParaGuardarLocalmente = respuestaDadaTextoParaBD;
+        }
+
+        // Guardar o eliminar respuesta
+        if (respuestaParaGuardarLocalmente != null || (respuestaDadaTextoParaBD != null && !respuestaDadaTextoParaBD.isEmpty()) || opcionIdSeleccionadaParaBD != null ) {
+            respuestasEstudiante.put(preguntaExamenEstId, respuestaParaGuardarLocalmente);
+            try {
+                examenRepository.registrarRespuestaEstudiante(preguntaExamenEstId, respuestaDadaTextoParaBD, opcionIdSeleccionadaParaBD);
+                System.out.println("Respuesta guardada en BD para PEE ID: " + preguntaExamenEstId);
+            } catch (SQLException e) {
+                System.err.println("Error SQL al guardar respuesta en BD: " + e.getMessage());
+                mostrarAlerta(Alert.AlertType.ERROR, "Error de Guardado", "No se pudo guardar su respuesta. Verifique su conexión.");
+            }
+        } else { // Si no hay nada seleccionado/ingresado, y antes había algo, se borra
+            if (respuestasEstudiante.containsKey(preguntaExamenEstId)) {
+                respuestasEstudiante.remove(preguntaExamenEstId);
+                try {
+                    examenRepository.registrarRespuestaEstudiante(preguntaExamenEstId, null, null); // Enviar nulls para borrar
+                    System.out.println("Respuesta eliminada en BD para PEE ID: " + preguntaExamenEstId);
+                } catch (SQLException e) {
+                    System.err.println("Error SQL al eliminar respuesta en BD: " + e.getMessage());
+                }
+            }
         }
     }
-
 
     @FXML
     private void handleAnteriorPregunta(ActionEvent event) {
@@ -256,7 +382,7 @@ public class PresentacionExamenController implements Initializable {
     @FXML
     private void handleSiguientePregunta(ActionEvent event) {
         guardarRespuestaActual();
-        if (preguntaActualIndex < preguntasDelExamen.size() - 1) {
+        if (preguntasDelExamen != null && preguntaActualIndex < preguntasDelExamen.size() - 1) {
             preguntaActualIndex++;
             mostrarPreguntaActual();
         }
@@ -270,27 +396,32 @@ public class PresentacionExamenController implements Initializable {
         int currentPeeId = preguntasDelExamen.get(preguntaActualIndex).getPreguntaExamenEstudianteId();
         boolean marcada = preguntasMarcadasRevision.getOrDefault(currentPeeId, false);
         preguntasMarcadasRevision.put(currentPeeId, !marcada);
-        btnMarcarParaRevision.setText(!marcada ? "Desmarcar Pregunta" : "Marcar para Revisión");
-        // TODO: Podrías añadir una indicación visual en una lista de preguntas si la tuvieras.
+        btnMarcarParaRevision.setText(!marcada ? "Desmarcar" : "Marcar");
     }
-
 
     private void actualizarEstadoBotonesNavegacion() {
         btnAnterior.setDisable(preguntaActualIndex <= 0);
-        btnSiguiente.setDisable(preguntasDelExamen == null || preguntaActualIndex >= preguntasDelExamen.size() - 1);
+        btnSiguiente.setDisable(preguntasDelExamen == null || preguntasDelExamen.isEmpty() || preguntaActualIndex >= preguntasDelExamen.size() - 1);
     }
 
     private void iniciarTemporizador(long segundosTotales) {
         this.tiempoRestanteSegundos = segundosTotales;
         actualizarLabelTiempo();
-        progressBarTiempo.setProgress(1.0);
+        if (segundosTotales > 0) {
+            progressBarTiempo.setProgress(1.0);
+            progressBarTiempo.setVisible(true);
+        } else {
+            progressBarTiempo.setVisible(false);
+            lblTiempoRestante.setText("Tiempo: Ilimitado");
+            return;
+        }
 
         temporizadorExamen = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             tiempoRestanteSegundos--;
             actualizarLabelTiempo();
             progressBarTiempo.setProgress((double) tiempoRestanteSegundos / segundosTotales);
             if (tiempoRestanteSegundos <= 0) {
-                temporizadorExamen.stop();
+                if (temporizadorExamen != null) temporizadorExamen.stop();
                 finalizarExamenPorTiempo();
             }
         }));
@@ -299,20 +430,28 @@ public class PresentacionExamenController implements Initializable {
     }
 
     private void actualizarLabelTiempo() {
-        long horas = tiempoRestanteSegundos / 3600;
-        long minutos = (tiempoRestanteSegundos % 3600) / 60;
-        long segundos = tiempoRestanteSegundos % 60;
-        lblTiempoRestante.setText(String.format("Tiempo: %02d:%02d:%02d", horas, minutos, segundos));
+        if (this.infoExamen != null && this.infoExamen.getTiempo() != null && this.infoExamen.getTiempo() > 0) {
+            long horas = tiempoRestanteSegundos / 3600;
+            long minutos = (tiempoRestanteSegundos % 3600) / 60;
+            long segundos = tiempoRestanteSegundos % 60;
+            lblTiempoRestante.setText(String.format("Tiempo: %02d:%02d:%02d", horas, minutos, segundos));
+        } else {
+            lblTiempoRestante.setText("Tiempo: Ilimitado");
+        }
     }
 
     private void finalizarExamenPorTiempo() {
-        mostrarAlerta(Alert.AlertType.WARNING, "Tiempo Terminado", "El tiempo para presentar el examen ha finalizado. Se enviarán tus respuestas.");
-        finalizarExamenLogica();
+        Platform.runLater(() -> {
+            guardarRespuestaActual();
+            mostrarAlerta(Alert.AlertType.WARNING, "Tiempo Terminado", "El tiempo para presentar el examen ha finalizado. Se enviarán tus respuestas.");
+            finalizarExamenLogica();
+        });
     }
+
 
     @FXML
     private void handleFinalizarExamen(ActionEvent event) {
-        guardarRespuestaActual(); // Guardar la respuesta de la última pregunta vista
+        guardarRespuestaActual();
 
         Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
         confirmacion.setTitle("Finalizar Examen");
@@ -329,25 +468,20 @@ public class PresentacionExamenController implements Initializable {
     }
 
     private void finalizarExamenLogica() {
+        if (temporizadorExamen != null) {
+            temporizadorExamen.stop();
+        }
+        btnAnterior.setDisable(true);
+        btnSiguiente.setDisable(true);
+        btnMarcarParaRevision.setDisable(true);
+        btnFinalizarExamen.setDisable(true);
+        if (contenedorOpcionesRespuesta != null) {
+            contenedorOpcionesRespuesta.setDisable(true);
+        }
+
         try {
-            // TODO: Asegurarse que todas las respuestas no guardadas se envíen si hay un mecanismo de guardado en segundo plano.
-            // Por ahora, `guardarRespuestaActual` se llama al navegar o finalizar.
-
             ResultadoExamenDTO resultadoDTO = examenRepository.finalizarYCalificarExamen(this.idPresentacionExamen);
-
-            // Navegar a la pantalla de resultados
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/estudiante/resultados_examen.fxml"));
-            Parent rootResultados = loader.load();
-
-            ResultadosExamenController resultadosController = loader.getController();
-            resultadosController.initData(estudianteLogueado, resultadoDTO); // Pasar el DTO de resultado
-
-            Stage stage = (Stage) rootPresentacionExamen.getScene().getWindow();
-            Scene scene = new Scene(rootResultados);
-            stage.setScene(scene);
-            stage.setTitle("EduTec - Resultados del Examen");
-            // stage.setMaximized(true); // Opcional
-
+            navegarAResultados(resultadoDTO);
         } catch (SQLException e) {
             System.err.println("Error SQL al finalizar y calificar el examen: " + e.getMessage());
             e.printStackTrace();
@@ -359,16 +493,37 @@ public class PresentacionExamenController implements Initializable {
         }
     }
 
+    private void navegarAResultados(ResultadoExamenDTO resultadoDTO) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/estudiante/resultados_examen.fxml"));
+        Parent rootResultados = loader.load();
+        ResultadosExamenController resultadosController = loader.getController();
+        if (this.estudianteLogueado == null) {
+            System.err.println("Estudiante logueado es null al intentar navegar a resultados.");
+            mostrarAlerta(Alert.AlertType.ERROR, "Error de Usuario", "No se pudo identificar al usuario para mostrar los resultados.");
+            return;
+        }
+        resultadosController.initData(estudianteLogueado, resultadoDTO);
+
+        Stage stage = (Stage) rootPresentacionExamen.getScene().getWindow();
+        Scene scene = new Scene(rootResultados);
+        stage.setScene(scene);
+        stage.setTitle("EduTec - Resultados del Examen");
+    }
+
     private void mostrarAlerta(Alert.AlertType tipo, String titulo, String mensaje) {
-        Alert alert = new Alert(tipo);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(mensaje);
-        // Asegurarse que la alerta se muestre en el hilo de la UI si se llama desde otro hilo (ej. temporizador)
-        if (!Platform.isFxApplicationThread()) {
-            Platform.runLater(alert::showAndWait);
-        } else {
+        Runnable alertTask = () -> {
+            Alert alert = new Alert(tipo);
+            alert.setTitle(titulo);
+            alert.setHeaderText(null);
+            alert.setContentText(mensaje);
             alert.showAndWait();
+        };
+
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(alertTask);
+        } else {
+            alertTask.run();
         }
     }
 }
+
