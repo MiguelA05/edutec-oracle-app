@@ -76,6 +76,71 @@ public class PreguntaRepositoryImpl {
         return preguntas;
     }
 
+    // En PreguntaRepositoryImpl.java
+
+    public List<PreguntaBancoDTO> buscarPreguntasBancoDTO(long cedulaProfesor, String textoBusqueda,
+                                                          Integer tipoPreguntaId, Integer contenidoId, Integer nivelId,
+                                                          Integer cursoIdContexto) throws SQLException { // <--- DEBE TENER ESTE 6º PARÁMETRO
+        List<PreguntaBancoDTO> preguntas = new ArrayList<>();
+        // La llamada SQL debe tener 6 placeholders '?' para los parámetros IN
+        String sql = String.format("{? = call %s.%s(?, ?, ?, ?, ?, ?)}", PAQUETE_GESTION_PREGUNTAS, FUNC_BUSCAR_PREGUNTAS_BANCO_DTO);
+
+        try (Connection conn = ConnectionOracle.conectar();
+             CallableStatement cstmt = conn.prepareCall(sql)) {
+
+            cstmt.registerOutParameter(1, OracleTypes.CURSOR);
+            cstmt.setLong(2, cedulaProfesor); // p_cedula_profesor
+
+            if (textoBusqueda != null && !textoBusqueda.trim().isEmpty()) {
+                cstmt.setString(3, textoBusqueda.trim()); // p_texto_busqueda
+            } else {
+                cstmt.setNull(3, Types.VARCHAR);
+            }
+
+            if (tipoPreguntaId != null) { // p_tipo_pregunta_id
+                cstmt.setInt(4, tipoPreguntaId);
+            } else {
+                cstmt.setNull(4, Types.INTEGER);
+            }
+
+            if (contenidoId != null) { // p_contenido_id
+                cstmt.setInt(5, contenidoId);
+            } else {
+                cstmt.setNull(5, Types.INTEGER);
+            }
+
+            if (nivelId != null) { // p_nivel_id
+                cstmt.setInt(6, nivelId);
+            } else {
+                cstmt.setNull(6, Types.INTEGER);
+            }
+
+            if (cursoIdContexto != null) { // p_id_curso_contexto
+                cstmt.setInt(7, cursoIdContexto);
+            } else {
+                cstmt.setNull(7, Types.INTEGER);
+            }
+
+            cstmt.execute();
+
+            try (ResultSet rs = (ResultSet) cstmt.getObject(1)) {
+                while (rs != null && rs.next()) {
+                    preguntas.add(new PreguntaBancoDTO(
+                            rs.getInt("ID_PREGUNTA"),
+                            rs.getString("TEXTO_PREGUNTA"),
+                            rs.getString("TIEMPO_ESTIMADO"),
+                            rs.getBigDecimal("PORCENTAJE_DEFECTO"),
+                            rs.getString("NOMBRE_TIPO_PREGUNTA"),
+                            rs.getString("NOMBRE_CONTENIDO"),
+                            rs.getString("NOMBRE_NIVEL"),
+                            rs.getString("NOMBRE_VISIBILIDAD")
+                    ));
+                }
+            }
+        }
+        return preguntas;
+    }
+
     public Pregunta obtenerPreguntaPorId(int idPregunta) throws SQLException {
         Pregunta pregunta = null;
         String sql = String.format("{? = call %s.%s(?)}", PAQUETE_GESTION_PREGUNTAS, FUNC_OBTENER_PREGUNTA_POR_ID_COMPLETA);

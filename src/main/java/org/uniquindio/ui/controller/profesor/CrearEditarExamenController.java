@@ -18,6 +18,7 @@ import javafx.util.StringConverter;
 import org.uniquindio.model.dto.PreguntaExamenDTO;
 import org.uniquindio.model.entity.academico.Contenido;
 import org.uniquindio.model.entity.academico.Curso;
+import org.uniquindio.model.entity.catalogo.TipoPregunta;
 import org.uniquindio.model.entity.evaluacion.Examen; // Corrected import
 import org.uniquindio.model.entity.catalogo.Categoria; // Assuming Categoria is in .catalogo
 import org.uniquindio.model.entity.evaluacion.Pregunta;
@@ -29,6 +30,7 @@ import org.uniquindio.ui.controller.profesor.dialogs.SeleccionarPreguntaDialogCo
 import org.uniquindio.model.dto.PreguntaSeleccionDTO;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 // Importa tus clases de Repositorio que llamarán a PL/SQL
@@ -36,6 +38,7 @@ import org.uniquindio.repository.impl.CatalogoRepositoryImpl;
 // import org.uniquindio.repository.impl.CategoriaRepositoryImpl;
 // import org.uniquindio.repository.impl.ExamenRepositoryImpl;
 // import org.uniquindio.repository.impl.PreguntaRepositoryImpl;
+
 
 // import java.io.IOException; // If opening new FXMLs for question management
 import java.io.IOException;
@@ -53,12 +56,13 @@ import java.util.ResourceBundle;
 public class CrearEditarExamenController implements Initializable {
 
     private static final Integer ID_CREACION_AUTOMATICA = 2;
+    private static final Integer ID_CREACION_MANUAL = 1;
     @FXML private TextField txtNombreExamen;
     @FXML private ComboBox<Curso> comboCurso;
     @FXML private ComboBox<Categoria> comboCategoria;
     @FXML private TextArea txtDescripcionExamen;
     @FXML private Spinner<Integer> spinnerPesoCurso; // Representa porcentaje, se convertirá a BigDecimal
-    @FXML private Spinner<Integer> spinnerUmbralAprobacion; // Representa porcentaje, se convertirá a BigDecimal
+    @FXML private Spinner<Double> spinnerUmbralAprobacion; // Representa porcentaje, se convertirá a BigDecimal
     @FXML private DatePicker datePickerFecha;
     @FXML private TextField txtHoraPresentacion;
     @FXML private Spinner<Integer> spinnerDuracion;
@@ -75,9 +79,11 @@ public class CrearEditarExamenController implements Initializable {
     @FXML private Button btnGuardarExamen;
     @FXML private Button btnCancelarExamen;
 
+
     private ObservableList<PreguntaExamenDTO> preguntasDelExamenList = FXCollections.observableArrayList();
     private Profesor profesorLogueado;
     private Examen examenActual; // Para modo edición
+    private DashboardProfesorController dashboardProfesorController;
 
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -112,15 +118,58 @@ public class CrearEditarExamenController implements Initializable {
      * @param profesor El profesor que ha iniciado sesión.
      * @param examen (Opcional) El examen a editar, null si es creación.
      */
-    public void initData(Profesor profesor, Examen examen) throws SQLException {
+    public void initData(Profesor profesor, Examen examen, DashboardProfesorController dashboardController) throws SQLException {
         this.profesorLogueado = profesor;
         this.examenActual = examen;
+        this.dashboardProfesorController = dashboardController; // Guardar la referencia
 
-        cargarCombosIniciales(); // Ahora es seguro llamar esto
-
+        cargarCombosIniciales();
         if (examenActual != null) {
             cargarExamenParaEdicion(examenActual);
+        } else {
+            // Valores por defecto para un nuevo examen
+            limpiarFormularioExamen(); // Limpiar para asegurar estado inicial
         }
+    }
+
+    private void limpiarFormularioExamen() {
+        txtNombreExamen.clear();
+        txtDescripcionExamen.clear();
+        comboCurso.getSelectionModel().clearSelection();
+        comboCurso.setValue(null);
+        comboCategoria.getSelectionModel().clearSelection();
+        comboCategoria.setValue(null);
+
+        if (spinnerPesoCurso.getValueFactory() != null) {
+            spinnerPesoCurso.getValueFactory().setValue(20);
+        }
+        if (spinnerUmbralAprobacion.getValueFactory() != null) {
+            ((SpinnerValueFactory.DoubleSpinnerValueFactory)spinnerUmbralAprobacion.getValueFactory()).setValue(3.0);
+        }
+        if (spinnerDuracion.getValueFactory() != null) {
+            spinnerDuracion.getValueFactory().setValue(60);
+        }
+        if (spinnerNumPreguntasEstudiante.getValueFactory() != null) {
+            spinnerNumPreguntasEstudiante.getValueFactory().setValue(10);
+        }
+
+        datePickerFecha.setValue(LocalDate.now().plusDays(1));
+        txtHoraPresentacion.setText("08:00");
+
+        checkSeleccionAutomatica.setSelected(false);
+        if (preguntasDelExamenList != null) {
+            preguntasDelExamenList.clear();
+        }
+        actualizarTotalPorcentaje();
+
+        examenActual = null;
+
+        btnAnadirPreguntaExistente.setDisable(false);
+        btnCrearNuevaPregunta.setDisable(false);
+        tablaPreguntasExamen.setDisable(false);
+        spinnerNumPreguntasEstudiante.setDisable(false);
+        colPreguntaPorcentaje.setEditable(true);
+        txtNombreExamen.requestFocus(); // Poner el foco en el primer campo
     }
 
     public void cargarExamenParaEdicion(Examen examen) throws SQLException {
@@ -150,7 +199,7 @@ public class CrearEditarExamenController implements Initializable {
             spinnerPesoCurso.getValueFactory().setValue(examen.getPesoCurso().intValue());
         }
         if (examen.getCalificacionMinAprobatoria() != null) {
-            spinnerUmbralAprobacion.getValueFactory().setValue(examen.getCalificacionMinAprobatoria().intValue());
+            spinnerUmbralAprobacion.getValueFactory().setValue((double) examen.getCalificacionMinAprobatoria().intValue());
         }
 
         if (examen.getFecha() != null) {
@@ -315,48 +364,84 @@ public class CrearEditarExamenController implements Initializable {
 
     @FXML
     private void handleCrearNuevaPregunta(ActionEvent event) {
+        if (profesorLogueado == null) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Profesor no identificado.");
+            return;
+        }
+        Curso cursoDelExamen = comboCurso.getValue();
+
+        // Si la creación no es automática, se requiere un curso para saber a qué contenidos puede pertenecer la pregunta
+        if (cursoDelExamen == null && !checkSeleccionAutomatica.isSelected()) {
+            mostrarAlerta(Alert.AlertType.WARNING, "Curso Requerido",
+                    "Por favor, seleccione un curso para el examen antes de crear una nueva pregunta manualmente.");
+            return;
+        }
+
         try {
-            // Load the FXML for the dialog
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/profesor/dialogs/crear_pregunta_dialog.fxml"));
             Parent parent = loader.load();
-
-            // Get the controller for the dialog
             CrearPreguntaDialogController dialogController = loader.getController();
-            dialogController.setProfesor(this.profesorLogueado); // Pass the logged-in professor
 
-            // Create and configure the dialog stage
+            // Pasamos el profesor, el curso del examen (puede ser null si se permite crear examen sin curso inicialmente)
+            // y null para preguntaAEditar porque es una pregunta nueva.
+            dialogController.initData(this.profesorLogueado, cursoDelExamen, null);
+
             Stage dialogStage = new Stage();
-            dialogStage.setTitle("Crear Nueva Pregunta");
+            dialogStage.setTitle("Crear Nueva Pregunta" + (cursoDelExamen != null ? " para el Curso: " + cursoDelExamen.getNombre() : " (Banco General)"));
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.initOwner(((Node) event.getSource()).getScene().getWindow());
             dialogStage.setScene(new Scene(parent));
-
-            // Pass the stage to the dialog controller
             dialogController.setDialogStage(dialogStage);
 
-            // Show the dialog and wait for it to close
             dialogStage.showAndWait();
 
-            // Retrieve the created question
             Pregunta preguntaCreada = dialogController.getPreguntaCreadaOEditada();
-            if (preguntaCreada != null) {
-                // Add the created question to the exam's question list
-                PreguntaExamenDTO nuevaPreguntaDTO = new PreguntaExamenDTO(
-                        (long) preguntaCreada.getIdPregunta(),
-                        preguntaCreada.getTexto(),
-                        preguntaCreada.getTipoPreguntaId() != null ? "Tipo " + preguntaCreada.getTipoPreguntaId() : "Desconocido",
-                        preguntaCreada.getPorcentaje() != null ? preguntaCreada.getPorcentaje().doubleValue() : 10.0
-                );
-                preguntasDelExamenList.add(nuevaPreguntaDTO);
-                actualizarTotalPorcentaje();
 
-                // Show success message
-                mostrarAlerta(Alert.AlertType.INFORMATION, "Pregunta Añadida",
-                        "La pregunta '" + preguntaCreada.getTexto().substring(0, Math.min(preguntaCreada.getTexto().length(), 30)) + "...' se ha creado y añadido.");
+            if (preguntaCreada != null) { // Si se creó y guardó una pregunta en el diálogo
+                if (!checkSeleccionAutomatica.isSelected()) {
+                    String tipoPreguntaNombre = "Desconocido";
+                    if (preguntaCreada.getTipoPreguntaId() != null) {
+                        try {
+                            // Es mejor tener un método en catalogoRepository para obtener un tipo por ID
+                            // en lugar de listar todos y filtrar. Por ahora, usamos el stream.
+                            TipoPregunta tp = catalogoRepository.listarTiposPregunta().stream()
+                                    .filter(t -> t.getId() == preguntaCreada.getTipoPreguntaId())
+                                    .findFirst().orElse(null);
+                            if (tp != null) {
+                                tipoPreguntaNombre = tp.getNombre();
+                            } else {
+                                tipoPreguntaNombre = "Tipo ID: " + preguntaCreada.getTipoPreguntaId();
+                            }
+                        } catch (SQLException e) {
+                            System.err.println("Error obteniendo nombre de tipo de pregunta: " + e.getMessage());
+                            if(preguntaCreada.getTipoPreguntaId() != null){
+                                tipoPreguntaNombre = "Tipo ID: " + preguntaCreada.getTipoPreguntaId();
+                            }
+                        }
+                    }
+
+                    PreguntaExamenDTO nuevaPreguntaDTO = new PreguntaExamenDTO(
+                            (long) preguntaCreada.getIdPregunta(),
+                            preguntaCreada.getTexto(),
+                            tipoPreguntaNombre, // Nombre del tipo de pregunta obtenido
+                            preguntaCreada.getPorcentaje() != null ? preguntaCreada.getPorcentaje().doubleValue() : 10.0
+                    );
+                    preguntasDelExamenList.add(nuevaPreguntaDTO);
+                    actualizarTotalPorcentaje();
+                    mostrarAlerta(Alert.AlertType.INFORMATION, "Pregunta Añadida al Examen",
+                            "La pregunta '" + preguntaCreada.getTexto().substring(0, Math.min(preguntaCreada.getTexto().length(), 30)) + "...' se ha creado y añadido a este examen.");
+                } else {
+                    mostrarAlerta(Alert.AlertType.INFORMATION, "Pregunta Creada en Banco",
+                            "La pregunta '" + preguntaCreada.getTexto().substring(0, Math.min(preguntaCreada.getTexto().length(), 30)) + "...' se ha creado en el banco de preguntas. No se añadió a este examen porque la selección es automática.");
+                }
             }
+
         } catch (IOException e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error de Carga", "No se pudo abrir el diálogo de creación de pregunta: " + e.getMessage());
+            e.printStackTrace(); // Es bueno tener esto para depuración
+        } catch (Exception e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error Inesperado", "Ocurrió un error: " + e.getMessage());
             e.printStackTrace();
-            mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo abrir el diálogo de creación de pregunta.");
         }
     }
 
@@ -373,8 +458,8 @@ public class CrearEditarExamenController implements Initializable {
     @FXML
     private void handleGuardarExamen(ActionEvent event) {
         // Validaciones básicas
-        if (txtNombreExamen.getText().trim().isEmpty()) { // Asumiendo que txtNombreExamen es para el título/descripción corta
-            mostrarAlerta(Alert.AlertType.ERROR, "Campo Incompleto", "El nombre/título del examen es obligatorio.");
+        if (txtNombreExamen.getText().trim().isEmpty()) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Campo Incompleto", "El nombre del examen es obligatorio.");
             return;
         }
         if (comboCurso.getValue() == null) {
@@ -389,7 +474,11 @@ public class CrearEditarExamenController implements Initializable {
             mostrarAlerta(Alert.AlertType.ERROR, "Campo Incompleto", "La fecha de presentación es obligatoria.");
             return;
         }
+
+
         LocalTime horaPresentacion = null;
+        LocalDate fechaSeleccionada = datePickerFecha.getValue();
+        LocalTime horaSeleccionada = null;
         try {
             if (txtHoraPresentacion.getText() != null && !txtHoraPresentacion.getText().trim().isEmpty()) {
                 horaPresentacion = LocalTime.parse(txtHoraPresentacion.getText().trim(), timeFormatter);
@@ -402,60 +491,84 @@ public class CrearEditarExamenController implements Initializable {
             return;
         }
 
+        if (fechaSeleccionada != null && horaSeleccionada != null) {
+            LocalDateTime fechaHoraExamen = LocalDateTime.of(fechaSeleccionada, horaSeleccionada);
+            LocalDateTime fechaHoraActual = LocalDateTime.now();
+
+            if (fechaHoraExamen.isBefore(fechaHoraActual)) {
+                mostrarAlerta(Alert.AlertType.ERROR, "Fecha Inválida",
+                        "La fecha y hora de presentación del examen no puede ser anterior a la fecha y hora actual.");
+                return;
+            }
+        } else {
+            if (fechaSeleccionada == null) {
+                mostrarAlerta(Alert.AlertType.ERROR, "Campo Incompleto", "La fecha de presentación es obligatoria.");
+                return;
+            }
+        }
+
         if (!checkSeleccionAutomatica.isSelected() && preguntasDelExamenList.isEmpty()) {
             mostrarAlerta(Alert.AlertType.ERROR, "Sin Preguntas", "Debe añadir preguntas al examen o seleccionar la opción de selección automática.");
             return;
         }
         double totalPorcentaje = preguntasDelExamenList.stream().mapToDouble(PreguntaExamenDTO::getPorcentaje).sum();
-        if (!checkSeleccionAutomatica.isSelected() && Math.abs(totalPorcentaje - 100.0) > 0.01 && !preguntasDelExamenList.isEmpty()) {
+        if (!checkSeleccionAutomatica.isSelected() && !preguntasDelExamenList.isEmpty() && Math.abs(totalPorcentaje - 100.0) > 0.01) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error de Porcentaje", "La suma de los porcentajes de las preguntas añadidas manualmente debe ser 100%. Actualmente es: " + String.format("%.2f%%", totalPorcentaje));
             return;
         }
-
+        if (profesorLogueado == null) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error Interno", "No se ha identificado al profesor.");
+            return;
+        }
 
         Examen examen = (examenActual == null) ? new Examen() : examenActual;
-        // Tu entidad Examen usa descripcion para el nombre/titulo.
-        // Si quieres un campo 'nombre' separado, debes añadirlo a la entidad y BD.
-        examen.setDescripcion(txtNombreExamen.getText().trim() + (txtDescripcionExamen.getText().trim().isEmpty() ? "" : " - " + txtDescripcionExamen.getText().trim()));
-
-
-        examen.setCursoId(comboCurso.getValue().getIdCurso()); // Asumiendo que Curso tiene getId_curso()
-        examen.setCategoriaId(comboCategoria.getValue().getId()); // Asumiendo que Categoria tiene getId()
-
+        examen.setNombre(txtNombreExamen.getText().trim()); // Campo nombre del examen
+        examen.setDescripcion(txtDescripcionExamen.getText().trim()); // Campo descripción
+        examen.setCursoId(comboCurso.getValue().getIdCurso());
+        examen.setCategoriaId(comboCategoria.getValue().getId());
         examen.setPesoCurso(BigDecimal.valueOf(spinnerPesoCurso.getValue()));
         examen.setCalificacionMinAprobatoria(BigDecimal.valueOf(spinnerUmbralAprobacion.getValue()));
 
         LocalDate localDate = datePickerFecha.getValue();
         LocalDateTime localDateTime = LocalDateTime.of(localDate, horaPresentacion);
-        examen.setFecha(Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant())); // Para el campo Fecha (solo día)
-        examen.setHora(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant())); // Para el campo Hora (fecha y hora)
+        examen.setFecha(Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        examen.setHora(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()));
 
         examen.setTiempo(spinnerDuracion.getValue());
         examen.setNumeroPreguntas(spinnerNumPreguntasEstudiante.getValue());
+        examen.setCreacionId(checkSeleccionAutomatica.isSelected() ? ID_CREACION_AUTOMATICA : ID_CREACION_MANUAL);
 
-        // Lógica para creacionId basado en checkSeleccionAutomatica
-        // Debes tener los IDs de la tabla CREACION (ej. 1=Manual, 2=Automático)
-        // Integer idCreacionManual = 1; // Obtener de BD o constante
-        // Integer idCreacionAutomatica = 2; // Obtener de BD o constante
-        // examen.setCreacionId(checkSeleccionAutomatica.isSelected() ? idCreacionAutomatica : idCreacionManual);
+        // Convertir ObservableList<PreguntaExamenDTO> a List<PreguntaExamenDTO> si es necesario por el repositorio
+        List<PreguntaExamenDTO> listaParaRepositorio = new ArrayList<>(preguntasDelExamenList);
 
-
-        // TODO: Llamar a procedimiento PL/SQL via Repositorio para guardar el examen y sus detalles (DetallePreguntaExamen)
-        // try {
-        //     if (examenActual == null) { // Crear nuevo
-        //         // examenRepository.crearExamenCompletoPLSQL(examen, preguntasDelExamenList, profesorLogueado.getCedula());
-        //         mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Examen creado correctamente.");
-        //     } else { // Actualizar existente
-        //         // examenRepository.actualizarExamenCompletoPLSQL(examen, preguntasDelExamenList);
-        //         mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Examen actualizado correctamente.");
-        //     }
-        //     cerrarVentana();
-        // } catch (SQLException e) {
-        //     mostrarAlerta(Alert.AlertType.ERROR, "Error de Base de Datos", "No se pudo guardar el examen: " + e.getMessage());
-        //     e.printStackTrace();
-        // }
-        mostrarAlerta(Alert.AlertType.INFORMATION, "Guardado (Simulado)", "La lógica de guardado con PL/SQL y manejo de preguntas debe implementarse. Examen: " + examen.getDescripcion());
-
+        try {
+            if (examenActual == null) { // Crear nuevo
+                int idExamenCreado = examenRepository.crearExamenCompleto(
+                        examen,
+                        checkSeleccionAutomatica.isSelected() ? new ArrayList<>() : listaParaRepositorio, // Pasar lista vacía si es automático
+                        profesorLogueado.getCedula()
+                );
+                examen.setId(idExamenCreado); // Actualizar el ID en el objeto local
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Examen creado correctamente con ID: " + idExamenCreado);
+                limpiarFormularioExamen();
+            } else { // Actualizar existente
+                boolean actualizado = examenRepository.actualizarExamenCompleto(
+                        examen,
+                        checkSeleccionAutomatica.isSelected() ? new ArrayList<>() : listaParaRepositorio // Pasar lista vacía si es automático
+                );
+                if (actualizado) {
+                    mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Examen ID: " + examen.getId() + " actualizado correctamente.");
+                } else {
+                    mostrarAlerta(Alert.AlertType.WARNING, "Advertencia", "No se pudo actualizar el examen o no hubo cambios.");
+                }
+            }
+        } catch (SQLException e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error de Base de Datos", "No se pudo guardar el examen: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) { // Captura más general para cualquier otra cosa
+            mostrarAlerta(Alert.AlertType.ERROR, "Error Inesperado", "Ocurrió un error al guardar el examen: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -464,11 +577,10 @@ public class CrearEditarExamenController implements Initializable {
     }
 
     private void cerrarVentana() {
-        // Stage stage = (Stage) btnCancelarExamen.getScene().getWindow();
-        // stage.close();
+        Stage stage = (Stage) btnCancelarExamen.getScene().getWindow();
+        stage.close();
         System.out.println("Operación cancelada o ventana cerrada.");
-        // Para cerrar la vista actual cargada en el dashboard del profesor,
-        // necesitarías una referencia al controlador del dashboard y un método allí para limpiar el panel de contenido.
+
     }
 
     private void mostrarAlerta(Alert.AlertType tipo, String titulo, String mensaje) {

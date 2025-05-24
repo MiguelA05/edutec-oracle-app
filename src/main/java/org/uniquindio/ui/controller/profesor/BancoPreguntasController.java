@@ -141,49 +141,63 @@ public class BancoPreguntasController implements Initializable {
             // Cargar Temas/Contenidos (asumiendo que son generales o filtrados por profesor si es necesario)
             // Si los temas dependen de los cursos del profesor, la lógica de carga sería más compleja.
             // Por ahora, asumimos que se listan todos los contenidos o los que el profesor puede acceder.
-            List<Contenido> temas = contenidoRepository.listarTodosLosContenidos(); // O un método específico
-            comboFiltroTemaBanco.setItems(FXCollections.observableArrayList(temas));
-            comboFiltroTemaBanco.getItems().add(0, null); // Opción "Todos"
-            comboFiltroTemaBanco.setConverter(new StringConverter<>() {
-                @Override public String toString(Contenido object) { return object == null ? "Todos los Temas" : object.getNombre(); }
+            List<Contenido> todosLosTemas = contenidoRepository.listarTodosLosContenidos();
+            ObservableList<Contenido> contenidosParaCombo = FXCollections.observableArrayList();
+            contenidosParaCombo.add(null); // Opción para "Todos los Temas"
+            contenidosParaCombo.addAll(todosLosTemas);
+
+            comboFiltroTemaBanco.setItems(contenidosParaCombo); // Asumiendo que tu ComboBox se llama comboFiltroTemaBanco
+            comboFiltroTemaBanco.setConverter(new StringConverter<Contenido>() {
+                @Override public String toString(Contenido object) {
+                    return object == null ? "Todos los Temas" : object.getNombre();
+                }
                 @Override public Contenido fromString(String string) { return null; }
             });
+            comboFiltroTemaBanco.setDisable(todosLosTemas.isEmpty() && contenidosParaCombo.size() <=1);
 
         } catch (SQLException e) {
-            mostrarAlerta(Alert.AlertType.ERROR, "Error de Carga", "No se pudieron cargar los filtros: " + e.getMessage());
+            mostrarAlerta(Alert.AlertType.ERROR, "Error de Carga", "No se pudieron cargar los filtros para el banco de preguntas: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    // En BancoPreguntasController.java
     @FXML
     private void handleAplicarFiltros(ActionEvent event) {
         if (profesorLogueado == null) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Información Requerida", "No se ha identificado al profesor.");
+            mostrarAlerta(Alert.AlertType.WARNING, "Error", "Profesor no identificado.");
             return;
         }
 
-        String texto = txtBusquedaGeneral.getText();
-        Integer tipoId = comboFiltroTipoPreguntaBanco.getValue() != null ? comboFiltroTipoPreguntaBanco.getValue().getId() : null;
-        Integer contenidoId = comboFiltroTemaBanco.getValue() != null ? comboFiltroTemaBanco.getValue().getIdContenido() : null;
-        // Integer nivelId = comboFiltroNivelBanco.getValue() != null ? comboFiltroNivelBanco.getValue().getId() : null; // Si se añade filtro
+        String texto = txtBusquedaGeneral.getText().trim(); // Asumiendo que tienes un TextField txtBusquedaGeneral
+        Integer tipoId = (comboFiltroTipoPreguntaBanco.getValue() != null) ? comboFiltroTipoPreguntaBanco.getValue().getId() : null;
+        Integer nivelId = null; // Añade un ComboBox para Nivel si lo tienes y obtén su valor
+        // @FXML private ComboBox<Nivel> comboFiltroNivelBanco;
+        // if (comboFiltroNivelBanco.getValue() != null) nivelId = comboFiltroNivelBanco.getValue().getId();
+
+        Contenido contenidoSeleccionado = comboFiltroTemaBanco.getValue();
+        Integer contenidoIdFiltro = (contenidoSeleccionado != null) ? contenidoSeleccionado.getIdContenido() : null;
 
         try {
+            // Llamar a la versión del repositorio que pasa NULL para cursoIdContexto,
+            // o si solo tienes la de 6 params, pasar null explícitamente.
             List<PreguntaBancoDTO> preguntasEncontradas = preguntaRepository.buscarPreguntasBancoDTO(
                     profesorLogueado.getCedula(),
-                    texto,
+                    texto.isEmpty() ? null : texto,
                     tipoId,
-                    contenidoId,
-                    null // nivelId placeholder
-                    // ,visibilidadId placeholder
+                    contenidoIdFiltro, // p_contenido_id
+                    nivelId,
+                    null               // p_id_curso_contexto es NULL para el banco general
             );
-            listaPreguntasDTO.setAll(preguntasEncontradas);
+
+            listaPreguntasDTO.setAll(preguntasEncontradas); // Asumiendo que tienes listaPreguntasDTO para la tabla
             if (preguntasEncontradas.isEmpty()){
                 tablaBancoPreguntas.setPlaceholder(new Label("No se encontraron preguntas con los filtros aplicados."));
             }
         } catch (SQLException e) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error de Base de Datos", "No se pudieron cargar las preguntas: " + e.getMessage());
             e.printStackTrace();
-            listaPreguntasDTO.clear();
+            if(listaPreguntasDTO != null) listaPreguntasDTO.clear();
             tablaBancoPreguntas.setPlaceholder(new Label("Error al cargar preguntas."));
         }
     }
@@ -203,9 +217,8 @@ public class BancoPreguntasController implements Initializable {
             Parent parent = loader.load();
 
             CrearPreguntaDialogController dialogController = loader.getController();
-            dialogController.setProfesor(this.profesorLogueado);
             if (pregunta != null) {
-                dialogController.setPreguntaParaEdicion(pregunta);
+                dialogController.initData(this.profesorLogueado, null, pregunta);
             }
 
             Stage dialogStage = new Stage();

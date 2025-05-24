@@ -129,7 +129,8 @@ public class DashboardProfesorController implements Initializable {
             if (profesorLogueado != null && controller != null) {
                 if (controller instanceof CrearEditarExamenController) {
                     CrearEditarExamenController crearEditarCtrl = (CrearEditarExamenController) controller;
-                    crearEditarCtrl.initData(this.profesorLogueado, null);
+                    // Pasar 'this' (DashboardProfesorController) y el examen si se está editando
+                    crearEditarCtrl.initData(this.profesorLogueado, null /* o examenAEditar */, this);
                     // Si es para editar un examen existente (examenAEditar es tu objeto Examen):
                     // crearEditarCtrl.initData(this.profesorLogueado, examenAEditar);
                 }
