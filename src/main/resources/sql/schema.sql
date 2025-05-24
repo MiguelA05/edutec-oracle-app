@@ -351,6 +351,7 @@ CREATE TABLE OpcionPregunta (
                                 respuesta VARCHAR2(255) NOT NULL,
                                 es_correcta CHAR(1) NOT NULL CHECK (es_correcta IN ('S', 'N')),
                                 pregunta_id INTEGER NOT NULL,
+                                secuencia NUMBER,
                                 CONSTRAINT pk_opcion_pregunta PRIMARY KEY (id) USING INDEX TABLESPACE TS_INDICES,
                                 CONSTRAINT fk_pregunta_opcion FOREIGN KEY (pregunta_id) REFERENCES Pregunta(id_pregunta)
 ) TABLESPACE TS_EVALUACIONES;

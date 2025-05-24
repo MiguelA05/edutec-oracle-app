@@ -1,14 +1,13 @@
 package org.uniquindio.repository.impl;
 
-import oracle.jdbc.OracleTypes; // Necesario para REF_CURSOR si no usas Types.REF_CURSOR y para tipos ARRAY/STRUCT
-import oracle.sql.ARRAY; // Para manejar colecciones Oracle
-import oracle.sql.ArrayDescriptor; // Para describir el tipo de colección Oracle
-import oracle.sql.STRUCT; // Para manejar registros Oracle
-import oracle.sql.StructDescriptor; // Para describir el tipo de registro Oracle
-
+import oracle.jdbc.OracleTypes;
+import oracle.sql.ARRAY;
+import oracle.sql.ArrayDescriptor;
+import oracle.sql.STRUCT;
+import oracle.sql.StructDescriptor;
 import org.uniquindio.model.dto.PreguntaBancoDTO;
 import org.uniquindio.model.entity.evaluacion.OpcionPregunta;
-import org.uniquindio.model.entity.evaluacion.Pregunta; // Asegúrate que esta entidad esté actualizada
+import org.uniquindio.model.entity.evaluacion.Pregunta;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -26,6 +25,7 @@ public class PreguntaRepositoryImpl {
     private static final String FUNC_OBTENER_OPCIONES_POR_PREGUNTA_ID = "OBTENER_OPCIONES_POR_PREGUNTA_ID";
 
     // Nombres de los tipos Oracle (deben coincidir con tu definición en la BD)
+    // Asegúrate que estos nombres estén en MAYÚSCULAS si así están definidos en la BD.
     private static final String T_REGISTRO_OPCION_PREGUNTA_SQL = "T_REGISTRO_OPCION_PREGUNTA";
     private static final String T_ARRAY_OPCION_PREGUNTA_SQL = "T_ARRAY_OPCION_PREGUNTA_TYPE";
 
@@ -38,7 +38,7 @@ public class PreguntaRepositoryImpl {
         try (Connection conn = ConnectionOracle.conectar();
              CallableStatement cstmt = conn.prepareCall(sql)) {
 
-            cstmt.registerOutParameter(1, OracleTypes.CURSOR); // Usar OracleTypes.CURSOR para SYS_REFCURSOR
+            cstmt.registerOutParameter(1, OracleTypes.CURSOR);
             cstmt.setLong(2, cedulaProfesor);
 
             if (textoBusqueda != null && !textoBusqueda.trim().isEmpty()) {
@@ -63,7 +63,7 @@ public class PreguntaRepositoryImpl {
                     preguntas.add(new PreguntaBancoDTO(
                             rs.getInt("ID_PREGUNTA"),
                             rs.getString("TEXTO_PREGUNTA"),
-                            rs.getString("TIEMPO_ESTIMADO"), // Asumiendo que PREGUNTA.TIEMPO_ESTIMADO es NUMBER y PL/SQL lo formatea a String si es necesario, o DTO lo maneja
+                            rs.getString("TIEMPO_ESTIMADO"),
                             rs.getBigDecimal("PORCENTAJE_DEFECTO"),
                             rs.getString("NOMBRE_TIPO_PREGUNTA"),
                             rs.getString("NOMBRE_CONTENIDO"),
@@ -76,12 +76,6 @@ public class PreguntaRepositoryImpl {
         return preguntas;
     }
 
-    /**
-     * Obtiene una pregunta completa por su ID, incluyendo sus opciones.
-     * @param idPregunta
-     * @return Objeto Pregunta con sus opciones, o null si no se encuentra.
-     * @throws SQLException
-     */
     public Pregunta obtenerPreguntaPorId(int idPregunta) throws SQLException {
         Pregunta pregunta = null;
         String sql = String.format("{? = call %s.%s(?)}", PAQUETE_GESTION_PREGUNTAS, FUNC_OBTENER_PREGUNTA_POR_ID_COMPLETA);
@@ -94,13 +88,10 @@ public class PreguntaRepositoryImpl {
 
             try (ResultSet rs = (ResultSet) cstmt.getObject(1)) {
                 if (rs != null && rs.next()) {
-                    // Asumiendo que tu entidad Pregunta.java tiene un constructor que coincide
-                    // y que TIEMPO_ESTIMADO en la BD es NUMBER (lo lees como Integer).
-                    // Si tu Pregunta.java espera String para tiempo, ajusta rs.getObject(...)
                     pregunta = new Pregunta(
                             rs.getInt("ID_PREGUNTA"),
                             rs.getString("TEXTO"),
-                            (rs.getObject("TIEMPO_ESTIMADO", Integer.class)), // Ajustado para NUMBER
+                            rs.getObject("TIEMPO_ESTIMADO", Integer.class),
                             rs.getBigDecimal("PORCENTAJE"),
                             rs.getObject("TIPO_PREGUNTA_ID", Integer.class),
                             rs.getObject("VISIBILIDAD_ID", Integer.class),
@@ -108,39 +99,34 @@ public class PreguntaRepositoryImpl {
                             rs.getObject("PREGUNTA_PADRE", Integer.class),
                             rs.getObject("CONTENIDO_ID", Integer.class),
                             rs.getInt("CREADOR_CEDULA_PROFESOR"),
-                            rs.getObject("FECHA_CREACION", java.time.LocalDateTime.class),
-                            rs.getObject("FECHA_MODIFICACION", java.time.LocalDateTime.class),
+                            // Para Oracle DATE que representa solo fecha, usar LocalDate
+                            // Para Oracle DATE que representa fecha y hora, o TIMESTAMP, usar LocalDateTime
+                            rs.getTimestamp("FECHA_CREACION") != null ? rs.getTimestamp("FECHA_CREACION").toLocalDateTime() : null,
+                            rs.getTimestamp("FECHA_MODIFICACION") != null ? rs.getTimestamp("FECHA_MODIFICACION").toLocalDateTime() : null,
                             rs.getString("USUARIO_MODIFICACION")
                     );
-                    // Asignar creador si está en la entidad
-                    // if (pregunta != null) {
-                    //     pregunta.setCreadorCedulaProfesor(rs.getLong("CREADOR_CEDULA_PROFESOR"));
-                    // }
-
-
-                    // Cargar las opciones para esta pregunta
-                    List<OpcionPregunta> opciones = obtenerOpcionesDePregunta(idPregunta, conn);
-                    // Asumiendo que tu entidad Pregunta tiene un método setOpciones(List<OpcionPregunta> opciones)
-                    // o que las pasas a un constructor más completo.
-                    // pregunta.setOpciones(opciones); // Descomentar y ajustar si Pregunta tiene este setter/campo.
+                    // Si necesitas cargar las opciones aquí también, puedes hacerlo,
+                    // aunque tu método setPreguntaParaEdicion lo hace por separado.
+                    // List<OpcionPregunta> opciones = obtenerOpcionesDePregunta(idPregunta, conn);
+                    // pregunta.setOpciones(opciones); // Si tu entidad Pregunta tiene un setter para opciones
                 }
             }
         }
         return pregunta;
     }
 
-    /**
-     * Obtiene las opciones para una pregunta específica.
-     * @param idPregunta
-     * @param conn Una conexión de base de datos existente (para evitar abrir múltiples conexiones).
-     * @return Lista de OpcionPregunta.
-     * @throws SQLException
-     */
     public List<OpcionPregunta> obtenerOpcionesDePregunta(int idPregunta, Connection conn) throws SQLException {
         List<OpcionPregunta> opciones = new ArrayList<>();
         String sql = String.format("{? = call %s.%s(?)}", PAQUETE_GESTION_PREGUNTAS, FUNC_OBTENER_OPCIONES_POR_PREGUNTA_ID);
+        boolean newConnection = false;
+        Connection localConn = conn;
 
-        try (CallableStatement cstmt = conn.prepareCall(sql)) {
+        if (localConn == null) {
+            localConn = ConnectionOracle.conectar();
+            newConnection = true;
+        }
+
+        try (CallableStatement cstmt = localConn.prepareCall(sql)) {
             cstmt.registerOutParameter(1, OracleTypes.CURSOR);
             cstmt.setInt(2, idPregunta);
             cstmt.execute();
@@ -150,10 +136,15 @@ public class PreguntaRepositoryImpl {
                     opciones.add(new OpcionPregunta(
                             rs.getInt("ID"),
                             rs.getString("RESPUESTA"),
-                            rs.getString("ES_CORRECTA").charAt(0), // CHAR(1)
-                            rs.getInt("PREGUNTA_ID")
+                            rs.getString("ES_CORRECTA").charAt(0),
+                            rs.getInt("PREGUNTA_ID"),
+                            rs.getObject("SECUENCIA", Integer.class) // Leer la secuencia
                     ));
                 }
+            }
+        } finally {
+            if (newConnection && localConn != null) {
+                localConn.close();
             }
         }
         return opciones;
@@ -161,18 +152,14 @@ public class PreguntaRepositoryImpl {
 
 
     public int crearPreguntaCompleta(Pregunta pregunta, List<OpcionPregunta> opciones, long cedulaProfesor) throws SQLException {
-        // PL/SQL: PROCEDURE CREAR_PREGUNTA_COMPLETA(p_texto_pregunta, p_tiempo_estimado (NUMBER), p_porcentaje_defecto,
-        // p_tipo_pregunta_id, p_visibilidad_id, p_nivel_id, p_pregunta_padre_id,
-        // p_contenido_id, p_cedula_profesor_creador, p_opciones, p_id_pregunta_out);
         String sql = String.format("{call %s.%s(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}", PAQUETE_GESTION_PREGUNTAS, PROC_CREAR_PREGUNTA_COMPLETA);
 
         try (Connection conn = ConnectionOracle.conectar();
              CallableStatement cstmt = conn.prepareCall(sql)) {
 
             cstmt.setString(1, pregunta.getTexto());
-            // Ajuste: TIEMPO_ESTIMADO es NUMBER en BD. La entidad Pregunta.java debe tener Integer tiempoEstimado.
             if (pregunta.getTiempoEstimado() != null) {
-                cstmt.setInt(2, pregunta.getTiempoEstimado().intValue()); // Conversión explícita de Double a int
+                cstmt.setInt(2, pregunta.getTiempoEstimado());
             } else {
                 cstmt.setNull(2, Types.INTEGER);
             }
@@ -182,9 +169,8 @@ public class PreguntaRepositoryImpl {
             cstmt.setObject(6, pregunta.getNivelId(), Types.INTEGER);
             cstmt.setObject(7, pregunta.getPreguntaPadre(), Types.INTEGER);
             cstmt.setObject(8, pregunta.getContenidoId(), Types.INTEGER);
-            cstmt.setLong(9, cedulaProfesor); // Este es p_cedula_profesor_creador
+            cstmt.setLong(9, cedulaProfesor);
 
-            // Preparar la colección de opciones para PL/SQL
             ArrayDescriptor arrayDesc = ArrayDescriptor.createDescriptor(T_ARRAY_OPCION_PREGUNTA_SQL.toUpperCase(), conn);
             StructDescriptor structDesc = StructDescriptor.createDescriptor(T_REGISTRO_OPCION_PREGUNTA_SQL.toUpperCase(), conn);
             STRUCT[] opcionesStructArray = null;
@@ -197,15 +183,10 @@ public class PreguntaRepositoryImpl {
                     opcionesStructArray[i] = new STRUCT(structDesc, conn, attribs);
                 }
             }
-            // Incluso si opcionesStructArray es null (porque la lista de opciones estaba vacía),
-            // se debe pasar un ARRAY (que puede estar vacío) o un NULL del tipo correcto si el PL/SQL lo espera.
-            // Si el PL/SQL espera T_ARRAY_OPCION_PREGUNTA_TYPE y la lista es vacía, pasamos un array vacío.
             ARRAY arraySqlOpciones = new ARRAY(arrayDesc, conn, opcionesStructArray);
             cstmt.setArray(10, arraySqlOpciones);
 
-
             cstmt.registerOutParameter(11, Types.INTEGER); // p_id_pregunta_out
-
             cstmt.executeUpdate();
             return cstmt.getInt(11);
         }
@@ -219,9 +200,8 @@ public class PreguntaRepositoryImpl {
 
             cstmt.setInt(1, pregunta.getIdPregunta());
             cstmt.setString(2, pregunta.getTexto());
-
             if (pregunta.getTiempoEstimado() != null) {
-                cstmt.setInt(3, pregunta.getTiempoEstimado().intValue());
+                cstmt.setInt(3, pregunta.getTiempoEstimado());
             } else {
                 cstmt.setNull(3, Types.INTEGER);
             }
@@ -231,9 +211,8 @@ public class PreguntaRepositoryImpl {
             cstmt.setObject(7, pregunta.getNivelId(), Types.INTEGER);
             cstmt.setObject(8, pregunta.getPreguntaPadre(), Types.INTEGER);
             cstmt.setObject(9, pregunta.getContenidoId(), Types.INTEGER);
-            cstmt.setLong(10, pregunta.getCreadorCedulaProfesor());
+            cstmt.setLong(10, pregunta.getCreadorCedulaProfesor()); // Se pasa la cédula del creador original
 
-            // Preparar la colección de opciones para PL/SQL
             ArrayDescriptor arrayDesc = ArrayDescriptor.createDescriptor(T_ARRAY_OPCION_PREGUNTA_SQL.toUpperCase(), conn);
             StructDescriptor structDesc = StructDescriptor.createDescriptor(T_REGISTRO_OPCION_PREGUNTA_SQL.toUpperCase(), conn);
             STRUCT[] opcionesStructArray = null;
@@ -250,30 +229,75 @@ public class PreguntaRepositoryImpl {
             cstmt.setString(12, usuarioModificacion);
 
             cstmt.executeUpdate();
-            return true; // Asumir éxito si no hay excepción
+            return true;
         } catch (SQLException e) {
             System.err.println("Error al actualizar pregunta ID " + pregunta.getIdPregunta() + ": " + e.getMessage());
-            throw e; // Relanzar para que el controlador maneje
+            throw e;
         }
     }
 
     public boolean eliminarPreguntaPorId(int idPregunta) throws SQLException {
-        // PL/SQL: PROCEDURE ELIMINAR_PREGUNTA_POR_ID(p_id_pregunta IN NUMBER, p_filas_afectadas_out OUT NUMBER);
         String sql = String.format("{call %s.%s(?, ?)}", PAQUETE_GESTION_PREGUNTAS, PROC_ELIMINAR_PREGUNTA_POR_ID);
         try (Connection conn = ConnectionOracle.conectar();
              CallableStatement cstmt = conn.prepareCall(sql)) {
             cstmt.setInt(1, idPregunta);
-            cstmt.registerOutParameter(2, Types.INTEGER); // p_filas_afectadas_out
+            cstmt.registerOutParameter(2, Types.INTEGER);
 
             cstmt.executeUpdate();
             int filasAfectadas = cstmt.getInt(2);
-            return filasAfectadas > 0; // El PL/SQL podría lanzar error si no se puede eliminar
+            return filasAfectadas > 0;
         } catch (SQLException e) {
             System.err.println("Error al eliminar pregunta ID " + idPregunta + ": " + e.getMessage());
-            // Podrías verificar códigos de error específicos de Oracle para "en uso".
-            // Por ejemplo, si el PL/SQL lanza -20203:
-            // if (e.getErrorCode() == 20203) { mostrarAlerta específica }
-            return false; // O relanzar la excepción
+            // Verificar si el error es el personalizado -20003 o -20004
+            if (e.getErrorCode() == 20003 || e.getErrorCode() == 20004 ) {
+                // Ya se lanzó una excepción con mensaje claro desde PL/SQL, se puede relanzar o manejar.
+                // Por ahora, solo imprimimos y devolvemos false.
+                // Considera si quieres que la excepción PL/SQL se propague a la UI.
+                System.err.println("Error específico de PL/SQL: " + e.getMessage());
+                return false; // Opcional: podrías querer relanzar la excepción para que la UI la muestre.
+            }
+            // Para otros errores SQL, relanzar o devolver false.
+            // throw e; // Si quieres que la UI maneje todos los errores SQL.
+            return false;
         }
+    }
+
+    /**
+     * Lista las preguntas que pueden ser seleccionadas como "padre".
+     * Excluye la pregunta que se está editando actualmente (si se proporciona su ID).
+     * Solo incluye preguntas que no sean ya subpreguntas.
+     *
+     * @param cedulaProfesor Cédula del profesor logueado.
+     * @param idPreguntaAExcluir ID de la pregunta actual que se está editando (para no listarla como su propio padre), puede ser null si se crea una nueva.
+     * @return Lista de objetos Pregunta (solo con ID y Texto, o los campos necesarios para el ComboBox).
+     * @throws SQLException Si ocurre un error de base de datos.
+     */
+    public List<Pregunta> listarPreguntasCandidatasPadre(long cedulaProfesor, Integer idPreguntaAExcluir) throws SQLException {
+        List<Pregunta> preguntasCandidatas = new ArrayList<>();
+        String sql = "{? = call PAQUETE_GESTION_PREGUNTAS.LISTAR_PREGUNTAS_CANDIDATAS_PADRE(?, ?)}";
+
+        try (Connection conn = ConnectionOracle.conectar();
+             CallableStatement cstmt = conn.prepareCall(sql)) {
+
+            cstmt.registerOutParameter(1, OracleTypes.CURSOR);
+            cstmt.setLong(2, cedulaProfesor);
+            if (idPreguntaAExcluir != null) {
+                cstmt.setInt(3, idPreguntaAExcluir);
+            } else {
+                cstmt.setNull(3, Types.INTEGER);
+            }
+            cstmt.execute();
+
+            try (ResultSet rs = (ResultSet) cstmt.getObject(1)) {
+                while (rs != null && rs.next()) {
+                    Pregunta p = new Pregunta();
+                    p.setIdPregunta(rs.getInt("ID_PREGUNTA")); // Asume que el cursor devuelve ID_PREGUNTA
+                    p.setTexto(rs.getString("TEXTO"));       // Asume que el cursor devuelve TEXTO
+                    // No necesitas cargar todos los campos de la pregunta, solo los necesarios para el ComboBox.
+                    preguntasCandidatas.add(p);
+                }
+            }
+        }
+        return preguntasCandidatas;
     }
 }

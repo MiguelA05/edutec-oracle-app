@@ -19,6 +19,7 @@
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.RowConstraints?>
 
+<?import javafx.scene.control.TextField?>
 <BorderPane prefWidth="700.0" prefHeight="650.0" stylesheets="@../../../css/profesor/dialogs/crear_pregunta_dialog.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.uniquindio.ui.controller.profesor.dialogs.CrearPreguntaDialogController">
     <top>
         <Label text="Crear Nueva Pregunta" styleClass="titulo-dialogo" BorderPane.alignment="CENTER">
@@ -108,6 +109,46 @@
                                 </toggleGroup>
                             </RadioButton>
                             <RadioButton fx:id="radioFalso" text="Falso" toggleGroup="$grupoVerdaderoFalso" styleClass="radio-button-dialog"/>
+                        </VBox>
+
+                        <VBox fx:id="vboxOrdenarConceptos" spacing="10.0" visible="false" managed="false">
+                            <children>
+                                <Label text="Conceptos a Ordenar (en el orden correcto):" styleClass="form-label-dialog-bold" />
+                                <ScrollPane fx:id="scrollPaneOrdenarConceptos" fitToWidth="true" prefHeight="150.0">
+                                    <content>
+                                        <VBox fx:id="contenedorDinamicoOrdenar" spacing="8.0" />
+                                    </content>
+                                </ScrollPane>
+                                <Button fx:id="btnAnadirConceptoOrdenar" text="Añadir Concepto" onAction="#handleAnadirConceptoOrdenar" styleClass="button-accion-dialog" />
+                            </children>
+                            <padding>
+                                <Insets top="10.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox fx:id="vboxRelacionarConceptos" spacing="10.0" visible="false" managed="false">
+                            <children>
+                                <Label text="Pares de Conceptos a Relacionar:" styleClass="form-label-dialog-bold" />
+                                <ScrollPane fx:id="scrollPaneRelacionarConceptos" fitToWidth="true" prefHeight="150.0">
+                                    <content>
+                                        <VBox fx:id="contenedorDinamicoRelacionar" spacing="8.0" />
+                                    </content>
+                                </ScrollPane>
+                                <Button fx:id="btnAnadirParRelacionar" text="Añadir Par" onAction="#handleAnadirParRelacionar" styleClass="button-accion-dialog" />
+                            </children>
+                            <padding>
+                                <Insets top="10.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox fx:id="vboxSeleccionUnica" spacing="10.0" visible="false" managed="false">
+                            <children>
+                                <Label text="Respuesta Correcta Única:" styleClass="form-label-dialog-bold" />
+                                <TextField fx:id="txtRespuestaSeleccionUnica" promptText="Ingrese la respuesta exacta" />
+                            </children>
+                            <padding>
+                                <Insets top="10.0" />
+                            </padding>
                         </VBox>
 
                     </children>
