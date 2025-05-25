@@ -165,57 +165,26 @@ public class ResultadosExamenController implements Initializable {
             if (detalle.getIdPreguntaPadreOriginal() == null || detalle.getIdPreguntaPadreOriginal() == 0) {
                 TreeItem<DetalleRespuestaPreguntaDTO> principalItem = new TreeItem<>(detalle);
                 rootItem.getChildren().add(principalItem);
-                // Asumimos que DetalleRespuestaPreguntaDTO necesita un ID de pregunta original para mapear
-                // Si no lo tiene, necesitamos obtener el ID de la pregunta original de alguna manera.
-                // Por ahora, si no tenemos idPreguntaOriginal en el DTO, esto será problemático.
-                // Vamos a asumir que el PL/SQL de OBTENER_RESULTADOS_DETALLADOS devuelve el ID_PREGUNTA original
-                // y que DetalleRespuestaPreguntaDTO lo tiene.
-                // Si no, esta lógica de mapeo de padres fallará.
-                // Necesitamos el ID de la PREGUNTA (de la tabla PREGUNTA), no el PEE_ID.
-                // Supongamos que DetalleRespuestaPreguntaDTO tiene un getOriginalQuestionId()
-                // int originalQuestionId = detalle.getOriginalQuestionId(); // Necesitaríamos este campo
-                // mapIdPreguntaOriginalToTreeItem.put(originalQuestionId, principalItem);
-                // Por ahora, usaremos el PEE_ID como clave si no hay ID original directo, aunque no es ideal para jerarquía.
-                // La corrección ideal es que el DTO tenga el ID de la PREGUNTA original.
-                // Asumiendo que el PL/SQL OBTENER_RESULTADOS_DETALLADOS devuelve P.ID_PREGUNTA
-                // y que el DTO lo almacena como, por ejemplo, 'idPreguntaOriginalTablaPregunta'
-                // mapIdPreguntaOriginalToTreeItem.put(detalle.getIdPreguntaOriginalTablaPregunta(), principalItem);
-                // Como no tenemos ese campo explícito en el DTO actual, esta parte es un placeholder
-                // y la jerarquía podría no construirse bien si los PEE_ID no se corresponden con los ID de pregunta padre.
-
-                // Para que funcione con la estructura actual, donde idPreguntaPadreOriginal se refiere al ID_PREGUNTA de la tabla PREGUNTA
-                // y el DTO no tiene el ID_PREGUNTA original de sí mismo, necesitamos una forma de mapear
-                // el PEE_ID de una pregunta padre a su TreeItem.
-                // Esto es complicado. La solución más limpia es que OBTENER_RESULTADOS_DETALLADOS devuelva P.ID_PREGUNTA
-                // y que DetalleRespuestaPreguntaDTO lo almacene.
-
-                // SOLUCIÓN TEMPORAL (NO IDEAL): Si el DTO no tiene el ID de la pregunta original,
-                // no podemos construir la jerarquía fácilmente. Mostraremos una lista plana por ahora.
-                // La solución ideal requiere modificar el DTO y el PL/SQL como se mencionó.
+                mapIdPreguntaOriginalToTreeItem.put(detalle.getIdPreguntaOriginalPropia(), principalItem); // Usar el ID original como clave
             }
         }
 
-        // Segunda pasada: añadir subpreguntas
-        // Esta parte requiere que DetalleRespuestaPreguntaDTO tenga el ID de la pregunta original (no el PEE_ID)
-        // y que el idPreguntaPadreOriginal se refiera a ese ID original.
-        // Si no, la jerarquía no se podrá construir correctamente.
-        // Por ahora, como el DTO no tiene idPreguntaOriginal, esta parte no funcionará como se espera.
-        // Se mostrará una lista plana.
-        // TODO: Refactorizar cuando DetalleRespuestaPreguntaDTO incluya el ID de la pregunta original.
-
-        if (mapIdPreguntaOriginalToTreeItem.isEmpty() && !todosLosDetalles.isEmpty()) { // Fallback a lista plana
-            todosLosDetalles.forEach(detalle -> rootItem.getChildren().add(new TreeItem<>(detalle)));
-        } else {
+        if (!mapIdPreguntaOriginalToTreeItem.isEmpty()) { // Solo si pudimos mapear padres
             for (DetalleRespuestaPreguntaDTO detalle : todosLosDetalles) {
                 if (detalle.getIdPreguntaPadreOriginal() != null && detalle.getIdPreguntaPadreOriginal() > 0) {
                     TreeItem<DetalleRespuestaPreguntaDTO> parentTreeItem = mapIdPreguntaOriginalToTreeItem.get(detalle.getIdPreguntaPadreOriginal());
                     if (parentTreeItem != null) {
                         parentTreeItem.getChildren().add(new TreeItem<>(detalle));
-                    } else { // Subpregunta huérfana, añadir a la raíz (no debería pasar si los datos son consistentes)
-                        rootItem.getChildren().add(new TreeItem<>(detalle));
+                    } else {
+                        // Subpregunta huérfana: añadir a la raíz o manejar como error
+                        System.err.println("Subpregunta huérfana PEE_ID: " + detalle.getPreguntaExamenEstudianteId() + " con padre ID: " + detalle.getIdPreguntaPadreOriginal() + " no encontrado en el mapa.");
+                        rootItem.getChildren().add(new TreeItem<>(detalle)); // Fallback
                     }
                 }
             }
+        } else if (!todosLosDetalles.isEmpty()) { // Si no se pudo construir jerarquía, mostrar lista plana
+            todosLosDetalles.forEach(detalle -> rootItem.getChildren().add(new TreeItem<>(detalle)));
+            mostrarAlerta(Alert.AlertType.WARNING, "Visualización Plana", "No se pudo construir la jerarquía de preguntas. Mostrando lista plana.");
         }
 
 

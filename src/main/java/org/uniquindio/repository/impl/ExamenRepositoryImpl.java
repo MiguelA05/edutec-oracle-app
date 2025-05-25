@@ -406,10 +406,11 @@ public class ExamenRepositoryImpl {
                     boolean esCorrecta = rs.getInt("ES_CORRECTA_LA_RESPUESTA") == 1;
                     String feedback = rs.getString("FEEDBACK_ESPECIFICO_PREGUNTA");
                     Integer idPreguntaPadreOriginal = rs.getObject("ID_PREGUNTA_PADRE_ORIGINAL", Integer.class); // Mapear nuevo campo
+                    int idPreguntaOriginalPropia = rs.getInt("ID_PREGUNTA_ORIGINAL_PROPIA");
 
                     detalles.add(new DetalleRespuestaPreguntaDTO(peeId, textoP, tipoP, respEst,
                             optCorrectasTexto, optCorrectasId,
-                            esCorrecta, feedback, idPreguntaPadreOriginal)); // Añadir al constructor
+                            esCorrecta, feedback, idPreguntaOriginalPropia,idPreguntaPadreOriginal)); // Añadir al constructor
                 }
             }
         }

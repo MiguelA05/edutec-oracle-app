@@ -16,13 +16,14 @@ public class DetalleRespuestaPreguntaDTO {
     private List<Integer> opcionesCorrectasId;
     private boolean esCorrectaLaRespuesta;
     private String feedbackEspecifico;
+    private int idPreguntaOriginalPropia; // ID de la PREGUNTA original
     private Integer idPreguntaPadreOriginal; // Nuevo campo
 
     // Constructor completo
     public DetalleRespuestaPreguntaDTO(int preguntaExamenEstudianteId, String textoPregunta, String tipoPreguntaNombre,
                                        String respuestaEstudiante, List<String> opcionesCorrectasTexto,
                                        List<Integer> opcionesCorrectasId, boolean esCorrectaLaRespuesta,
-                                       String feedbackEspecifico, Integer idPreguntaPadreOriginal) { // Añadido al constructor
+                                       String feedbackEspecifico, Integer idPreguntaOriginalPropia, Integer idPreguntaPadreOriginal) { // Añadido al constructor
         this.preguntaExamenEstudianteId = preguntaExamenEstudianteId;
         this.textoPregunta = textoPregunta;
         this.tipoPreguntaNombre = tipoPreguntaNombre;
@@ -32,9 +33,10 @@ public class DetalleRespuestaPreguntaDTO {
         this.esCorrectaLaRespuesta = esCorrectaLaRespuesta;
         this.feedbackEspecifico = feedbackEspecifico;
         this.idPreguntaPadreOriginal = idPreguntaPadreOriginal; // Asignar nuevo campo
+        this.idPreguntaOriginalPropia = idPreguntaOriginalPropia; // Asignar nuevo campo
     }
 
-    public DetalleRespuestaPreguntaDTO(int peeId, String textoP, String tipoP, String respEst, List<String> optCorrectasTexto, List<Integer> optCorrectasId, boolean esCorrecta, String feedback) {
+    public DetalleRespuestaPreguntaDTO(int peeId, String textoP, String tipoP, String respEst, List<String> optCorrectasTexto, List<Integer> optCorrectasId, boolean esCorrecta, String feedback ) {
         this.preguntaExamenEstudianteId = peeId;
         this.textoPregunta = textoP;
         this.tipoPreguntaNombre = tipoP;

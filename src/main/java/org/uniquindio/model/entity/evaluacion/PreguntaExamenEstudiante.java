@@ -13,13 +13,15 @@ public class PreguntaExamenEstudiante {
     private Integer presentacionExamenId; // FK
     private Integer detallePreguntaExamenExamenId; // Parte de FK compuesta
     private Integer detallePreguntaExamenPreguntaId; // Parte de FK compuesta
+    private Double porcentajePresentacion; // Porcentaje de presentación de la pregunta
 
     public PreguntaExamenEstudiante(int id, Integer tiempo, Integer presentacionExamenId,
-                                    Integer detallePreguntaExamenExamenId, Integer detallePreguntaExamenPreguntaId) {
+                                    Integer detallePreguntaExamenExamenId, Integer detallePreguntaExamenPreguntaId, Double porcentajePresentacion) {
         this.id = id;
         this.tiempo = tiempo;
         this.presentacionExamenId = presentacionExamenId;
         this.detallePreguntaExamenExamenId = detallePreguntaExamenExamenId;
         this.detallePreguntaExamenPreguntaId = detallePreguntaExamenPreguntaId;
+        this.porcentajePresentacion = porcentajePresentacion;
     }
 }

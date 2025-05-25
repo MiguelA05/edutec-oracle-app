@@ -445,10 +445,18 @@ public class CrearEditarExamenController implements Initializable {
             mostrarAlerta(Alert.AlertType.ERROR, "Sin Preguntas", "Debe añadir preguntas principales al examen o seleccionar la opción de selección automática.");
             return;
         }
-        double totalPorcentaje = preguntasDelExamenList.stream().mapToDouble(PreguntaExamenDTO::getPorcentaje).sum();
-        if (!checkSeleccionAutomatica.isSelected() && !preguntasDelExamenList.isEmpty() && Math.abs(totalPorcentaje - 100.0) > 0.01) {
-            mostrarAlerta(Alert.AlertType.ERROR, "Error de Porcentaje", "La suma de los porcentajes de las preguntas principales añadidas debe ser 100%. Actualmente es: " + String.format("%.2f%%", totalPorcentaje));
-            return;
+
+        if (!checkSeleccionAutomatica.isSelected()) {
+            int numPreguntasManualesPrincipales = preguntasDelExamenList.size(); // Asumiendo que esta lista solo tiene principales
+            int numPreguntasParaEstudiante = spinnerNumPreguntasEstudiante.getValue();
+            if (numPreguntasManualesPrincipales < numPreguntasParaEstudiante) {
+                mostrarAlerta(Alert.AlertType.WARNING, "Preguntas Insuficientes",
+                        "Ha configurado que el estudiante vea " + numPreguntasParaEstudiante + " preguntas, " +
+                                "pero solo ha añadido " + numPreguntasManualesPrincipales + " preguntas principales manualmente. " +
+                                "El sistema intentará completar las restantes automáticamente del banco del curso si están disponibles. " +
+                                "Si desea control total, añada al menos " + numPreguntasParaEstudiante + " preguntas principales.");
+                // No necesariamente un error bloqueante si PL/SQL puede completar.
+            }
         }
         if (profesorLogueado == null) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error Interno", "No se ha identificado al profesor."); return;
