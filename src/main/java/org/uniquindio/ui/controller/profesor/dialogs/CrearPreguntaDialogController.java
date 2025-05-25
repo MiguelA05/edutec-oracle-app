@@ -42,9 +42,10 @@ public class CrearPreguntaDialogController implements Initializable {
     @FXML private ComboBox<Visibilidad> comboVisibilidad;
     @FXML private Spinner<Integer> spinnerTiempoEstimado;
     @FXML private Spinner<Double> spinnerPorcentajeDefecto;
+    @FXML private Label lblInfoPorcentaje; // Label para explicar el porcentaje
     @FXML private ComboBox<Pregunta> comboPreguntaPadre;
 
-    @FXML private VBox vboxOpcionesPregunta; // Usado por Selección Múltiple y ahora por Seleccion Unica (ID 5)
+    @FXML private VBox vboxOpcionesPregunta;
     @FXML private VBox contenedorDinamicoOpciones;
     @FXML private Button btnAnadirOpcion;
 
@@ -63,20 +64,17 @@ public class CrearPreguntaDialogController implements Initializable {
     @FXML private Button btnAnadirParRelacionar;
     @FXML private ScrollPane scrollPaneRelacionarConceptos;
 
-    // Este VBox y TextField ya no se usarán para "Seleccion Unica" (ID 5)
-    // Si tienes otro tipo de pregunta que sea de respuesta abierta simple, necesitarías una lógica diferente.
-    @FXML private VBox vboxSeleccionUnica;
-    @FXML private TextField txtRespuestaSeleccionUnica;
+    @FXML private VBox vboxSeleccionUnica; // Este VBox podría eliminarse si ID 5 usa vboxOpcionesPregunta
+    @FXML private TextField txtRespuestaSeleccionUnica; // Este TextField podría eliminarse
 
     @FXML private Button btnGuardarPregunta;
     @FXML private Button btnCancelarCreacion;
 
-    // Constantes actualizadas según tu aclaración
-    private static final String TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS = "Selección múltiple"; // ID 1
-    private static final String TIPO_VERDADERO_FALSO = "Verdadero/Falso";         // ID 2
-    private static final String TIPO_ORDENAR_CONCEPTOS = "Ordenar conceptos";     // ID 3
-    private static final String TIPO_RELACIONAR_CONCEPTOS = "Relacionar conceptos"; // ID 4
-    private static final String TIPO_SELECCION_UNICA_UNA_CORRECTA = "Seleccion Unica"; // ID 5
+    private static final String TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS = "Selección múltiple";
+    private static final String TIPO_VERDADERO_FALSO = "Verdadero/Falso";
+    private static final String TIPO_ORDENAR_CONCEPTOS = "Ordenar conceptos";
+    private static final String TIPO_RELACIONAR_CONCEPTOS = "Relacionar conceptos";
+    private static final String TIPO_SELECCION_UNICA_UNA_CORRECTA = "Seleccion Unica";
 
     private Profesor profesorLogueado;
     private Pregunta preguntaEditando;
@@ -98,13 +96,38 @@ public class CrearPreguntaDialogController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         configurarSpinners();
         configurarListenersTipoPregunta();
+        configurarListenerPreguntaPadre();
+        lblInfoPorcentaje.setText("Porcentaje/Peso de la pregunta (0-100)."); // Texto inicial
+        lblInfoPorcentaje.setWrapText(true);
     }
 
     private void configurarSpinners() {
         SpinnerValueFactory.DoubleSpinnerValueFactory doubleFactory =
-                new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 100.0, 10.0, 1.0);
+                new SpinnerValueFactory.DoubleSpinnerValueFactory(0.01, 100.0, 10.0, 0.01); // Min 0.01
         spinnerPorcentajeDefecto.setValueFactory(doubleFactory);
         spinnerPorcentajeDefecto.setEditable(true);
+        // Formateador para asegurar dos decimales
+        TextFormatter<Double> formatter = new TextFormatter<>(new StringConverter<Double>() {
+            @Override
+            public String toString(Double object) {
+                if (object == null) return "10.00";
+                return String.format("%.2f", object);
+            }
+            @Override
+            public Double fromString(String string) {
+                try {
+                    double val = Double.parseDouble(string.replace(",", "."));
+                    return Math.max(0.01, Math.min(100.0, val)); // Asegurar rango
+                } catch (NumberFormatException e) { return 10.0; }
+            }
+        }, 10.0, change -> { // Valor por defecto si la entrada es inválida
+            if (change.getControlNewText().matches("^\\d*([\\.,]\\d{0,2})?$")) {
+                return change;
+            }
+            return null;
+        });
+        spinnerPorcentajeDefecto.getEditor().setTextFormatter(formatter);
+
 
         SpinnerValueFactory.IntegerSpinnerValueFactory intFactoryTiempo =
                 new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 120, 5, 1);
@@ -121,12 +144,37 @@ public class CrearPreguntaDialogController implements Initializable {
         this.cursoContextoExamen = cursoDelExamenSiAplica;
         this.preguntaEditando = preguntaAEditar;
 
-        cargarCombos();
+        cargarCombos(); // Carga todos los combos, incluyendo el de pregunta padre
 
         if (this.preguntaEditando != null) {
             setPreguntaParaEdicionInternal(this.preguntaEditando);
+        } else {
+            // Es una nueva pregunta, actualizar la info del porcentaje según si hay padre o no
+            actualizarInfoPorcentaje(comboPreguntaPadre.getValue() != null);
         }
     }
+
+    private void configurarListenerPreguntaPadre() {
+        comboPreguntaPadre.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            actualizarInfoPorcentaje(newVal != null);
+            if (newVal != null) { // Si se selecciona una pregunta padre
+                // Opcional: Deshabilitar la edición del contenido si se quiere que herede del padre
+                // comboContenido.setDisable(true);
+                // comboContenido.setValue(obtenerContenidoDePreguntaPadre(newVal));
+            } else { // Si no hay pregunta padre (es principal)
+                // comboContenido.setDisable(false);
+            }
+        });
+    }
+
+    private void actualizarInfoPorcentaje(boolean esSubpregunta) {
+        if (esSubpregunta) {
+            lblInfoPorcentaje.setText("Porcentaje de esta subpregunta relativo a su pregunta padre (0.01-100.00%). La suma de subpreguntas de un mismo padre no debe exceder 100%.");
+        } else {
+            lblInfoPorcentaje.setText("Porcentaje/Peso por defecto de esta pregunta principal (0.01-100.00%). El porcentaje final en un examen se definirá al añadirla.");
+        }
+    }
+
 
     private void setPreguntaParaEdicionInternal(Pregunta pregunta) {
         txtTextoPregunta.setText(pregunta.getTexto());
@@ -149,6 +197,8 @@ public class CrearPreguntaDialogController implements Initializable {
                             .findFirst().orElse(null)
             );
         }
+        actualizarInfoPorcentaje(pregunta.getPreguntaPadre() != null && pregunta.getPreguntaPadre() > 0);
+
 
         if (pregunta.getIdPregunta() > 0) {
             try (Connection conn = ConnectionOracle.conectar()) {
@@ -186,7 +236,6 @@ public class CrearPreguntaDialogController implements Initializable {
                             if (partes.length == 2) anadirParRelacionarUI(partes[0], partes[1]);
                         });
                     }
-                    // Ya no hay un caso específico para TIPO_SELECCION_UNICA (ID 5) que use txtRespuestaSeleccionUnica
                 }
             } catch (SQLException e) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Error al Cargar Opciones", "No se pudieron cargar las opciones de la pregunta: " + e.getMessage());
@@ -232,7 +281,7 @@ public class CrearPreguntaDialogController implements Initializable {
                 }
             } else {
                 List<Contenido> todosLosTemas = contenidoRepository.listarTodosLosContenidos();
-                this.contenidosValidosParaCursoContexto.addAll(todosLosTemas);
+                this.contenidosValidosParaCursoContexto.addAll(todosLosTemas); // Permitir cualquier tema si no hay curso
                 contenidosDisponiblesParaCombo.addAll(todosLosTemas);
                 comboContenido.setPromptText("Seleccione tema/contenido");
             }
@@ -247,7 +296,7 @@ public class CrearPreguntaDialogController implements Initializable {
                 List<Pregunta> preguntasPadreCandidatas = preguntaRepository.listarPreguntasCandidatasPadre(profesorLogueado.getCedula(), idPreguntaActualAExcluir);
 
                 ObservableList<Pregunta> itemsPreguntaPadre = FXCollections.observableArrayList();
-                itemsPreguntaPadre.add(null);
+                itemsPreguntaPadre.add(null); // Opción para "Ninguna (Pregunta Principal)"
                 itemsPreguntaPadre.addAll(preguntasPadreCandidatas);
                 comboPreguntaPadre.setItems(itemsPreguntaPadre);
 
@@ -282,7 +331,7 @@ public class CrearPreguntaDialogController implements Initializable {
             vboxOrdenarConceptos.setManaged(false);
             vboxRelacionarConceptos.setVisible(false);
             vboxRelacionarConceptos.setManaged(false);
-            vboxSeleccionUnica.setVisible(false); // El VBox con TextField para ID 5
+            vboxSeleccionUnica.setVisible(false);
             vboxSeleccionUnica.setManaged(false);
 
             boolean tipoCambioOEsNueva = (preguntaEditando == null) ||
@@ -295,7 +344,7 @@ public class CrearPreguntaDialogController implements Initializable {
                 conceptosOrdenarList.clear();
                 contenedorDinamicoRelacionar.getChildren().clear();
                 paresRelacionarList.clear();
-                txtRespuestaSeleccionUnica.clear(); // Limpiar el TextField por si acaso
+                txtRespuestaSeleccionUnica.clear();
                 if (grupoVerdaderoFalso.getSelectedToggle() != null) {
                     grupoVerdaderoFalso.getSelectedToggle().setSelected(false);
                 }
@@ -304,7 +353,7 @@ public class CrearPreguntaDialogController implements Initializable {
             if (newValue != null) {
                 String tipoSeleccionado = newValue.getNombre();
                 if (TIPO_SELECCION_MULTIPLE_VARIAS_CORRECTAS.equalsIgnoreCase(tipoSeleccionado) ||
-                        TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(tipoSeleccionado) ) { // ID 1 y ID 5 usan vboxOpcionesPregunta
+                        TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(tipoSeleccionado) ) {
                     vboxOpcionesPregunta.setVisible(true);
                     vboxOpcionesPregunta.setManaged(true);
                     if (tipoCambioOEsNueva && opcionesUIList.isEmpty() &&
@@ -314,8 +363,8 @@ public class CrearPreguntaDialogController implements Initializable {
                                     )
                             )
                     ) {
-                        handleAnadirOpcion(null);
-                        handleAnadirOpcion(null);
+                        handleAnadirOpcion(null); // Añadir al menos una opción
+                        if(opcionesUIList.size() < 2) handleAnadirOpcion(null); // Y otra más si es el caso
                     }
                 } else if (TIPO_VERDADERO_FALSO.equalsIgnoreCase(tipoSeleccionado)) {
                     vboxVerdaderoFalso.setVisible(true);
@@ -334,7 +383,6 @@ public class CrearPreguntaDialogController implements Initializable {
                         handleAnadirParRelacionar(null);
                     }
                 }
-                // Ya no hay un 'else if' para TIPO_SELECCION_UNICA que muestre vboxSeleccionUnica (con el TextField)
             }
         });
     }
@@ -438,18 +486,20 @@ public class CrearPreguntaDialogController implements Initializable {
         }
 
         Contenido contenidoSeleccionado = comboContenido.getValue();
+        Pregunta preguntaPadreSeleccionada = comboPreguntaPadre.getValue();
 
-        if (cursoContextoExamen != null) {
+        if (cursoContextoExamen != null && preguntaPadreSeleccionada == null) { // Si es pregunta principal y hay contexto de curso
             boolean contenidoEsValidoParaCurso = this.contenidosValidosParaCursoContexto.stream()
                     .anyMatch(c -> c.getIdContenido() == contenidoSeleccionado.getIdContenido());
             if (!contenidoEsValidoParaCurso) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Contenido Inválido",
                         "El tema/contenido '" + contenidoSeleccionado.getNombre() +
                                 "' no pertenece al curso '" + cursoContextoExamen.getNombre() +
-                                "'. Seleccione un tema válido para este curso o cree la pregunta desde el banco general.");
+                                "'. Seleccione un tema válido para este curso o cree la pregunta sin contexto de curso (desde el banco general).");
                 return;
             }
         }
+        // Si es subpregunta, el contenido podría heredarse o ser específico. Por ahora, se toma el del combo.
 
         Integer tiempoEstimado = null;
         try {
@@ -462,6 +512,29 @@ public class CrearPreguntaDialogController implements Initializable {
             return;
         }
 
+        // Validación de porcentaje para subpreguntas
+        if (preguntaPadreSeleccionada != null) {
+            double porcentajeActualSubpregunta = spinnerPorcentajeDefecto.getValue();
+            try {
+                List<Pregunta> hermanas = preguntaRepository.obtenerSubpreguntasConPorcentaje(preguntaPadreSeleccionada.getIdPregunta());
+                double sumaPorcentajesHermanas = hermanas.stream()
+                        .filter(p -> preguntaEditando == null || p.getIdPregunta() != preguntaEditando.getIdPregunta()) // Excluir la actual si se edita
+                        .mapToDouble(p -> p.getPorcentaje() != null ? p.getPorcentaje().doubleValue() : 0.0)
+                        .sum();
+
+                if (sumaPorcentajesHermanas + porcentajeActualSubpregunta > 100.01) { // Usar epsilon para doubles
+                    mostrarAlerta(Alert.AlertType.ERROR, "Porcentaje Excedido para Subpreguntas",
+                            "La suma de los porcentajes de las subpreguntas para '" + preguntaPadreSeleccionada.getTexto().substring(0, Math.min(preguntaPadreSeleccionada.getTexto().length(), 20)) + "...' (" +
+                                    String.format("%.2f", sumaPorcentajesHermanas) + "% + " + String.format("%.2f", porcentajeActualSubpregunta) + "%) " +
+                                    "excede el 100%. Ajuste los valores.");
+                    return;
+                }
+            } catch (SQLException e) {
+                mostrarAlerta(Alert.AlertType.WARNING, "Advertencia", "No se pudo validar la suma de porcentajes de subpreguntas hermanas: " + e.getMessage());
+            }
+        }
+
+
         Pregunta preguntaAGuardar = (preguntaEditando == null) ? new Pregunta() : preguntaEditando;
         preguntaAGuardar.setTexto(txtTextoPregunta.getText().trim());
         preguntaAGuardar.setTiempoEstimado(tiempoEstimado);
@@ -472,8 +545,8 @@ public class CrearPreguntaDialogController implements Initializable {
         preguntaAGuardar.setVisibilidadId(comboVisibilidad.getValue().getId());
         preguntaAGuardar.setCreadorCedulaProfesor((int) profesorLogueado.getCedula());
 
-        if (comboPreguntaPadre.getValue() != null) {
-            preguntaAGuardar.setPreguntaPadre(comboPreguntaPadre.getValue().getIdPregunta());
+        if (preguntaPadreSeleccionada != null) {
+            preguntaAGuardar.setPreguntaPadre(preguntaPadreSeleccionada.getIdPregunta());
         } else {
             preguntaAGuardar.setPreguntaPadre(null);
         }
@@ -505,7 +578,7 @@ public class CrearPreguntaDialogController implements Initializable {
                 mostrarAlerta(Alert.AlertType.ERROR, "Sin Respuesta Correcta", "Debe marcar al menos una opción como correcta para 'Selección Múltiple'.");
                 return;
             }
-        } else if (TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(nombreTipoSeleccionado)) { // ID 5
+        } else if (TIPO_SELECCION_UNICA_UNA_CORRECTA.equalsIgnoreCase(nombreTipoSeleccionado)) {
             if (opcionesUIList.size() < 2) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Opciones Insuficientes", "Debe añadir al menos dos opciones para 'Seleccion Unica'.");
                 return;
@@ -555,8 +628,7 @@ public class CrearPreguntaDialogController implements Initializable {
                 }
                 OpcionPregunta op = new OpcionPregunta();
                 op.setRespuesta(textoConcepto);
-                op.setEsCorrecta('S'); // Todas son parte de la secuencia correcta
-                // La secuencia se determinará por el orden en p_opciones en PL/SQL
+                op.setEsCorrecta('S');
                 opcionesParaGuardar.add(op);
             }
         } else if (TIPO_RELACIONAR_CONCEPTOS.equalsIgnoreCase(nombreTipoSeleccionado)) {
@@ -572,12 +644,11 @@ public class CrearPreguntaDialogController implements Initializable {
                     return;
                 }
                 OpcionPregunta op = new OpcionPregunta();
-                op.setRespuesta(conceptoA + ":::" + conceptoB); // Separador para el par
-                op.setEsCorrecta('S'); // El par en sí es la "respuesta"
+                op.setRespuesta(conceptoA + ":::" + conceptoB);
+                op.setEsCorrecta('S');
                 opcionesParaGuardar.add(op);
             }
         }
-        // Ya no hay lógica para el antiguo TIPO_SELECCION_UNICA con TextField aquí.
 
         try {
             if (preguntaEditando == null) {

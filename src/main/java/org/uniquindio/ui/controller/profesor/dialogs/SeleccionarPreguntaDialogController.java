@@ -53,7 +53,7 @@ public class SeleccionarPreguntaDialogController implements Initializable {
 
     private Stage dialogStage;
     private Profesor profesorLogueado;
-    private Curso cursoExamenActual;
+    private Curso cursoExamenActual; // Curso para el cual se está creando/editando el examen
     private ObservableList<PreguntaSeleccionDTO> preguntasDisponiblesList = FXCollections.observableArrayList();
     private List<PreguntaSeleccionDTO> preguntasSeleccionadas = new ArrayList<>();
 
@@ -66,22 +66,13 @@ public class SeleccionarPreguntaDialogController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         configurarTabla();
-        // La carga de filtros y preguntas se hará en setProfesorYContexto
     }
 
     public void setProfesorYContexto(Profesor profesor, Curso cursoExamen) {
         this.profesorLogueado = profesor;
         this.cursoExamenActual = cursoExamen;
-        cargarFiltros(); // Esto ya carga los contenidos del curso actual en el combo
-
-        // Ya no es necesario deshabilitar comboFiltroContenido aquí si cargarFiltros lo maneja
-        // if (cursoExamenActual != null) {
-        //     comboFiltroContenido.setDisable(false);
-        // } else {
-        //     comboFiltroContenido.setDisable(true);
-        //     comboFiltroContenido.setPromptText("Seleccione un curso primero en el examen");
-        // }
-        handleBuscarPreguntas(null);
+        cargarFiltros();
+        handleBuscarPreguntas(null); // Cargar preguntas iniciales
     }
 
     private void configurarTabla() {
@@ -89,6 +80,9 @@ public class SeleccionarPreguntaDialogController implements Initializable {
             PreguntaSeleccionDTO dto = cellData.getValue();
             CheckBox checkBox = new CheckBox();
             checkBox.selectedProperty().bindBidirectional(dto.seleccionadoProperty());
+            // Deshabilitar selección si es una subpregunta (idPreguntaPadre != null)
+            // Esto se hará al poblar la lista, ya que el DTO no tiene idPreguntaPadre directamente.
+            // Se filtrarán las preguntas en handleBuscarPreguntas.
             return new SimpleObjectProperty<>(checkBox);
         });
         colTextoPreguntaDisponible.setCellValueFactory(new PropertyValueFactory<>("textoPregunta"));
@@ -120,14 +114,14 @@ public class SeleccionarPreguntaDialogController implements Initializable {
 
         tablaPreguntasDisponibles.setItems(preguntasDisponiblesList);
         tablaPreguntasDisponibles.setEditable(true);
-        tablaPreguntasDisponibles.setPlaceholder(new Label("No hay preguntas disponibles para los filtros seleccionados."));
+        tablaPreguntasDisponibles.setPlaceholder(new Label("No hay preguntas principales disponibles para los filtros seleccionados."));
     }
 
     private void cargarFiltros() {
         try {
             List<TipoPregunta> tipos = catalogoRepository.listarTiposPregunta();
             comboFiltroTipoPregunta.setItems(FXCollections.observableArrayList(tipos));
-            comboFiltroTipoPregunta.getItems().add(0, null); // Opción "Todos los Tipos"
+            comboFiltroTipoPregunta.getItems().add(0, null);
             comboFiltroTipoPregunta.setConverter(new StringConverter<>() {
                 @Override public String toString(TipoPregunta object) { return object == null ? "Todos los Tipos" : object.getNombre(); }
                 @Override public TipoPregunta fromString(String string) { return null; }
@@ -135,24 +129,21 @@ public class SeleccionarPreguntaDialogController implements Initializable {
 
             List<Nivel> niveles = catalogoRepository.listarNiveles();
             comboFiltroNivel.setItems(FXCollections.observableArrayList(niveles));
-            comboFiltroNivel.getItems().add(0, null); // Opción "Todos los Niveles"
+            comboFiltroNivel.getItems().add(0, null);
             comboFiltroNivel.setConverter(new StringConverter<>() {
                 @Override public String toString(Nivel object) { return object == null ? "Todos los Niveles" : object.getNombre(); }
                 @Override public Nivel fromString(String string) { return null; }
             });
 
             ObservableList<Contenido> contenidosParaCombo = FXCollections.observableArrayList();
-            contenidosParaCombo.add(null); // Opción para "Todos los Temas (del Curso)" o "Todos los Temas"
+            contenidosParaCombo.add(null);
 
             if (cursoExamenActual != null) {
                 List<Contenido> temasDelCurso = contenidoRepository.listarContenidosPorCurso(cursoExamenActual.getIdCurso());
                 contenidosParaCombo.addAll(temasDelCurso);
-                comboFiltroContenido.setDisable(temasDelCurso.isEmpty() && contenidosParaCombo.size() <=1 ); // Se deshabilita si no hay temas y solo está el "null"
+                comboFiltroContenido.setDisable(temasDelCurso.isEmpty() && contenidosParaCombo.size() <=1 );
                 comboFiltroContenido.setPromptText("Seleccione un tema del curso");
             } else {
-                // Este caso no debería ocurrir si el diálogo siempre se abre desde "Crear/Editar Examen"
-                // donde un curso ya está seleccionado o es obligatorio.
-                // Si puede ocurrir, se podrían listar todos los contenidos, pero la búsqueda no sería contextual al curso.
                 List<Contenido> todosLosTemas = contenidoRepository.listarTodosLosContenidos();
                 contenidosParaCombo.addAll(todosLosTemas);
                 comboFiltroContenido.setDisable(todosLosTemas.isEmpty() && contenidosParaCombo.size() <=1);
@@ -181,7 +172,6 @@ public class SeleccionarPreguntaDialogController implements Initializable {
             mostrarAlerta(Alert.AlertType.WARNING, "Error", "Profesor no identificado.");
             return;
         }
-        // Es crucial que cursoExamenActual esté definido si se espera filtrar por curso
         if (cursoExamenActual == null) {
             mostrarAlerta(Alert.AlertType.WARNING, "Contexto Faltante", "No se ha especificado un curso para el examen.");
             tablaPreguntasDisponibles.setPlaceholder(new Label("Seleccione un curso en la pantalla del examen para buscar preguntas."));
@@ -192,42 +182,36 @@ public class SeleccionarPreguntaDialogController implements Initializable {
         String texto = txtBusquedaTexto.getText().trim();
         Integer tipoId = (comboFiltroTipoPregunta.getValue() != null) ? comboFiltroTipoPregunta.getValue().getId() : null;
         Integer nivelId = (comboFiltroNivel.getValue() != null) ? comboFiltroNivel.getValue().getId() : null;
-
         Contenido contenidoSeleccionado = comboFiltroContenido.getValue();
         Integer contenidoIdFiltro = (contenidoSeleccionado != null) ? contenidoSeleccionado.getIdContenido() : null;
-
-        // Determinar el ID del curso para el contexto de la búsqueda
-        // Si se seleccionó un contenido específico, el filtro de contenido tiene precedencia.
-        // Si no se seleccionó contenido específico (es decir, "Todos los Temas (del Curso)"),
-        // entonces pasamos el ID del curso actual para que PL/SQL filtre por todos los contenidos de ese curso.
-        Integer cursoIdParaFiltrarContextual = null;
-        if (contenidoIdFiltro == null && cursoExamenActual != null) {
-            cursoIdParaFiltrarContextual = cursoExamenActual.getIdCurso();
-        }
+        Integer cursoIdParaFiltrarContextual = (contenidoIdFiltro == null && cursoExamenActual != null) ? cursoExamenActual.getIdCurso() : null;
 
         try {
             List<PreguntaBancoDTO> preguntasEncontradas = preguntaRepository.buscarPreguntasBancoDTO(
                     profesorLogueado.getCedula(),
                     texto.isEmpty() ? null : texto,
                     tipoId,
-                    contenidoIdFiltro,          // p_contenido_id: filtro específico de contenido
+                    contenidoIdFiltro,
                     nivelId,
-                    cursoIdParaFiltrarContextual // p_id_curso_contexto: para filtrar por todos los contenidos del curso si p_contenido_id es NULL
+                    cursoIdParaFiltrarContextual
             );
-            List<PreguntaSeleccionDTO> preguntasSeleccionDTOList = preguntasEncontradas.stream()
+
+            // Filtrar para mostrar solo preguntas principales (PREGUNTA_PADRE IS NULL)
+            List<PreguntaSeleccionDTO> preguntasPrincipalesDTOList = preguntasEncontradas.stream()
+                    .filter(pbDto -> pbDto.getIdPreguntaPadre() == null) // Solo preguntas principales
                     .map(preguntaBanco -> new PreguntaSeleccionDTO(
                             preguntaBanco.getIdPregunta(),
                             preguntaBanco.getTexto(),
                             preguntaBanco.getTipoPreguntaNombre(),
                             preguntaBanco.getNivelNombre(),
-                            false, // No seleccionada por defecto
-                            preguntaBanco.getPorcentajeDefecto() != null ? preguntaBanco.getPorcentajeDefecto().doubleValue() : 10.0 // Usar porcentaje por defecto
+                            false,
+                            preguntaBanco.getPorcentajeDefecto() != null ? preguntaBanco.getPorcentajeDefecto().doubleValue() : 10.0
                     ))
                     .collect(Collectors.toList());
 
-            preguntasDisponiblesList.setAll(preguntasSeleccionDTOList);
-            if (preguntasEncontradas.isEmpty()){
-                tablaPreguntasDisponibles.setPlaceholder(new Label("No se encontraron preguntas con los filtros aplicados para el curso actual."));
+            preguntasDisponiblesList.setAll(preguntasPrincipalesDTOList);
+            if (preguntasPrincipalesDTOList.isEmpty()){
+                tablaPreguntasDisponibles.setPlaceholder(new Label("No se encontraron preguntas principales con los filtros aplicados para el curso actual."));
             }
         } catch (SQLException e) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error de Base de Datos", "No se pudieron cargar las preguntas: " + e.getMessage());
@@ -243,7 +227,6 @@ public class SeleccionarPreguntaDialogController implements Initializable {
         preguntasDisponiblesList.stream()
                 .filter(PreguntaSeleccionDTO::isSeleccionado)
                 .forEach(dto -> {
-                    // La validación de porcentaje > 0 ya se hace en el setter o al confirmar
                     preguntasSeleccionadas.add(dto);
                 });
 
@@ -258,13 +241,6 @@ public class SeleccionarPreguntaDialogController implements Initializable {
             mostrarAlerta(Alert.AlertType.INFORMATION, "Sin Selección", "No ha seleccionado ninguna pregunta para añadir.");
             return;
         }
-
-        // Validar que la suma de porcentajes no exceda 100 (si es relevante aquí, o mejor en el controlador del examen)
-        // double sumaPorcentajes = preguntasSeleccionadas.stream().mapToDouble(PreguntaSeleccionDTO::getPorcentajeEnExamen).sum();
-        // if (sumaPorcentajes > 100.01) { // Usar un pequeño epsilon para comparaciones de double
-        //     mostrarAlerta(Alert.AlertType.ERROR, "Suma de Porcentajes Excedida", "La suma de los porcentajes de las preguntas seleccionadas ("+String.format("%.2f", sumaPorcentajes)+"%) excede el 100%.");
-        //     return;
-        // }
 
         if (dialogStage != null) {
             dialogStage.close();

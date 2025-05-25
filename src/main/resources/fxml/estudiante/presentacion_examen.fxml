@@ -37,10 +37,19 @@
         <ScrollPane fx:id="scrollPanePregunta" fitToWidth="true" styleClass="scroll-pregunta" BorderPane.alignment="CENTER">
             <content>
                 <VBox fx:id="contenedorPreguntaActual" spacing="15.0" styleClass="contenido-pregunta">
+
                     <padding>
                         <Insets top="20.0" right="30.0" bottom="20.0" left="30.0" />
                     </padding>
                     <children>
+                        <VBox fx:id="contenedorPreguntaPadreInfo" styleClass="info-pregunta-padre" spacing="5" managed="false" visible="false">
+                            <children>
+                                <Label fx:id="lblTextoPreguntaPadre" styleClass="texto-pregunta-padre" wrapText="true"/>
+                            </children>
+                            <VBox.margin>
+                                <Insets bottom="10.0" />
+                            </VBox.margin>
+                        </VBox>
                         <Label fx:id="lblNumeroPregunta" styleClass="numero-pregunta" text="Pregunta X:">
                             <font>
                                 <Font name="System Bold" size="16.0" />
@@ -51,6 +60,7 @@
                         <Label fx:id="lblTiempoSugeridoPregunta" styleClass="tiempo-sugerido-pregunta" text="Tiempo sugerido para esta pregunta: N/A" visible="false" managed="false"/>
 
                         <Separator prefWidth="200.0" />
+
 
                         <VBox fx:id="contenedorOpcionesRespuesta" spacing="10.0" VBox.vgrow="ALWAYS">
                             <!--

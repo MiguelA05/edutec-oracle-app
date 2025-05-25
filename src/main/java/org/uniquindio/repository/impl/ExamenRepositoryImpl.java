@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.math.BigDecimal;
+import java.time.LocalDateTime; // Asegúrate que esté importado
 
 public class ExamenRepositoryImpl {
 
@@ -208,6 +209,7 @@ public class ExamenRepositoryImpl {
                     examen.setId(rs.getInt("ID_EXAMEN"));
                     examen.setNombre(rs.getString("NOMBRE_EXAMEN"));
                     examen.setDescripcion(rs.getString("DESCRIPCION_EXAMEN"));
+                    // Aquí podrías cargar más detalles si la función PL/SQL los devuelve
                     examenes.add(examen);
                 }
             }
@@ -244,6 +246,7 @@ public class ExamenRepositoryImpl {
                     examen.setTiempo(rs.getObject("TIEMPO", Integer.class));
                     examen.setNumeroPreguntas(rs.getObject("NUMERO_PREGUNTAS", Integer.class));
                     examen.setCursoId(rs.getObject("CURSO_ID", Integer.class));
+                    // Cargar otros campos si la función PL/SQL los devuelve
                     examenes.add(examen);
                 }
             }
@@ -274,77 +277,27 @@ public class ExamenRepositoryImpl {
             cstmt.execute();
             try (ResultSet rs = (ResultSet) cstmt.getObject(1)) {
                 while (rs != null && rs.next()) {
-                    // --- Inicio Bloque de Depuración ---
-                    ResultSetMetaData rsmdPrincipal = rs.getMetaData();
-                    boolean opcionesCursorColumnExists = false;
-                    int opcionesCursorColumnIndex = -1;
-                    System.out.println("--- Columnas en ResultSet principal (rs) para PEE_ID: " + rs.getInt("ID_PREGUNTA_EXAMEN_ESTUDIANTE") + " ---");
-                    for (int i = 1; i <= rsmdPrincipal.getColumnCount(); i++) {
-                        String columnName = rsmdPrincipal.getColumnName(i);
-                        String columnLabel = rsmdPrincipal.getColumnLabel(i); // Usar getColumnLabel para el alias
-                        System.out.println("Columna " + i + ": Nombre=" + columnName + " | Label=" + columnLabel +
-                                " | Tipo JDBC: " + rsmdPrincipal.getColumnType(i) +
-                                " | Nombre Tipo JDBC: " + rsmdPrincipal.getColumnTypeName(i));
-                        if ("OPCIONES_CURSOR".equalsIgnoreCase(columnLabel)) {
-                            opcionesCursorColumnExists = true;
-                            opcionesCursorColumnIndex = i;
-                        }
-                    }
-                    // --- Fin Bloque de Depuración ---
-
                     int peeId = rs.getInt("ID_PREGUNTA_EXAMEN_ESTUDIANTE");
+                    int idPreguntaOriginal = rs.getInt("ID_PREGUNTA_ORIGINAL"); // Mapear nuevo campo
                     String texto = rs.getString("TEXTO_PREGUNTA");
                     String tipoNombre = rs.getString("NOMBRE_TIPO_PREGUNTA");
-                    // CORRECCIÓN: Usar el alias correcto "TIPO_PREGUNTA_ID" y manejar NULLs con getObject
                     Integer tipoId = rs.getObject("TIPO_PREGUNTA_ID", Integer.class);
                     String tiempoSugerido = rs.getString("TIEMPO_SUGERIDO_PREGUNTA");
+                    Integer idPreguntaPadreOriginal = rs.getObject("ID_PREGUNTA_PADRE_ORIGINAL", Integer.class);
 
                     List<PreguntaPresentacionDTO.OpcionPresentacionDTO> opciones = new ArrayList<>();
-                    String nombreColumnaCursorOpciones = "OPCIONES_CURSOR";
-                    Object cursorObject = null;
-
-                    if (!opcionesCursorColumnExists) {
-                        System.err.println("ERROR CRITICO: La columna '" + nombreColumnaCursorOpciones + "' NO fue encontrada en el ResultSet principal para PEE_ID: " + peeId);
-                    } else {
-                        try {
-                            // Si el error persiste aquí, considera obtener por índice como último recurso:
-                            // cursorObject = rs.getObject(opcionesCursorColumnIndex);
-                            cursorObject = rs.getObject(nombreColumnaCursorOpciones);
-                        } catch (SQLException eGetObj) {
-                            System.err.println("ERROR al ejecutar rs.getObject('" + nombreColumnaCursorOpciones + "') para PEE_ID " + peeId + ". Detalles: " + eGetObj.getMessage());
-                            eGetObj.printStackTrace();
-                        }
-
-                        if (cursorObject != null) {
-                            System.out.println("DEBUG: Objeto obtenido para '" + nombreColumnaCursorOpciones + "' para PEE_ID " + peeId + ". Tipo real: " + cursorObject.getClass().getName());
-                            if (cursorObject instanceof ResultSet) {
-                                try (ResultSet rsOpciones = (ResultSet) cursorObject) {
-                                    System.out.println("DEBUG: Procesando OPCIONES_CURSOR como ResultSet para PEE_ID: " + peeId);
-                                    ResultSetMetaData rsmdOpciones = rsOpciones.getMetaData();
-                                    System.out.println("DEBUG: Columnas en rsOpciones:");
-                                    for (int i = 1; i <= rsmdOpciones.getColumnCount(); i++) {
-                                        System.out.println("  Columna " + i + ": Nombre=" + rsmdOpciones.getColumnName(i) + " | Label=" + rsmdOpciones.getColumnLabel(i));
-                                    }
-
-                                    while (rsOpciones.next()) {
-                                        int idOpcion = rsOpciones.getInt("ID_OPCION");
-                                        String textoOpcion = rsOpciones.getString("TEXTO_OPCION");
-                                        opciones.add(new PreguntaPresentacionDTO.OpcionPresentacionDTO(idOpcion, textoOpcion));
-                                    }
-                                    System.out.println("DEBUG: Opciones procesadas para PEE_ID: " + peeId + ", Cantidad: " + opciones.size());
-                                } catch (SQLException e_opciones) {
-                                    System.err.println("Error al procesar el ResultSet de OPCIONES_CURSOR para PEE_ID " + peeId + ". Detalles: " + e_opciones.getMessage());
-                                    e_opciones.printStackTrace();
-                                }
-                            } else {
-                                System.err.println("Advertencia: El objeto para la columna '" + nombreColumnaCursorOpciones + "' para PEE_ID " + peeId +
-                                        " no es una instancia de ResultSet. Tipo real: " + cursorObject.getClass().getName());
+                    Object cursorObject = rs.getObject("OPCIONES_CURSOR");
+                    if (cursorObject instanceof ResultSet) {
+                        try (ResultSet rsOpciones = (ResultSet) cursorObject) {
+                            while (rsOpciones.next()) {
+                                opciones.add(new PreguntaPresentacionDTO.OpcionPresentacionDTO(
+                                        rsOpciones.getInt("ID_OPCION"),
+                                        rsOpciones.getString("TEXTO_OPCION")
+                                ));
                             }
-                        } else if (opcionesCursorColumnExists) {
-                            System.out.println("DEBUG: El objeto para OPCIONES_CURSOR es null para PEE_ID: " + peeId + " (puede ser normal si no hay opciones o el cursor está vacío).");
                         }
                     }
-                    preguntas.add(new PreguntaPresentacionDTO(peeId, texto, tipoNombre, tipoId, opciones, tiempoSugerido));
+                    preguntas.add(new PreguntaPresentacionDTO(peeId, idPreguntaOriginal, texto, tipoNombre, tipoId, opciones, tiempoSugerido, idPreguntaPadreOriginal));
                 }
             }
         }
@@ -438,11 +391,11 @@ public class ExamenRepositoryImpl {
                     String respEst = rs.getString("RESPUESTA_ESTUDIANTE");
                     String opcionesCorrectasTextoStr = rs.getString("OPCIONES_CORRECTAS_TEXTO");
                     List<String> optCorrectasTexto = (opcionesCorrectasTextoStr != null && !opcionesCorrectasTextoStr.isEmpty()) ?
-                            List.of(opcionesCorrectasTextoStr.split("\\s*,\\s*")) : Collections.emptyList();
+                            List.of(opcionesCorrectasTextoStr.split("; ")) : Collections.emptyList(); // Cambiado el split
                     String opcionesCorrectasIdStr = rs.getString("OPCIONES_CORRECTAS_ID");
                     List<Integer> optCorrectasId = new ArrayList<>();
                     if (opcionesCorrectasIdStr != null && !opcionesCorrectasIdStr.isEmpty()) {
-                        for (String idStr : opcionesCorrectasIdStr.split("\\s*,\\s*")) {
+                        for (String idStr : opcionesCorrectasIdStr.split(",")) { // Cambiado el split
                             try {
                                 optCorrectasId.add(Integer.parseInt(idStr.trim()));
                             } catch (NumberFormatException e) {
@@ -452,9 +405,11 @@ public class ExamenRepositoryImpl {
                     }
                     boolean esCorrecta = rs.getInt("ES_CORRECTA_LA_RESPUESTA") == 1;
                     String feedback = rs.getString("FEEDBACK_ESPECIFICO_PREGUNTA");
+                    Integer idPreguntaPadreOriginal = rs.getObject("ID_PREGUNTA_PADRE_ORIGINAL", Integer.class); // Mapear nuevo campo
+
                     detalles.add(new DetalleRespuestaPreguntaDTO(peeId, textoP, tipoP, respEst,
                             optCorrectasTexto, optCorrectasId,
-                            esCorrecta, feedback));
+                            esCorrecta, feedback, idPreguntaPadreOriginal)); // Añadir al constructor
                 }
             }
         }

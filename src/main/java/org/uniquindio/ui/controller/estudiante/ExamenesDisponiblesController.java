@@ -152,7 +152,7 @@ public class ExamenesDisponiblesController implements Initializable {
 
                     listaExamenesDTO.add(new ExamenDisponibleDTO(
                             examen.getId(),
-                            examen.getDescripcion(), // Usando descripción como nombre del examen
+                            examen.getNombre(),
                             nombreCurso,
                             examen.getFecha(),
                             examen.getHora(),

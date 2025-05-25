@@ -14,7 +14,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat; // Se mantiene por si se usa en otro lado, pero no para el Label drag
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
@@ -34,11 +34,15 @@ import java.util.stream.Collectors;
 
 public class PresentacionExamenController implements Initializable {
 
+    @FXML private ScrollPane scrollPanePregunta;
     @FXML private BorderPane rootPresentacionExamen;
     @FXML private Label lblTituloExamen;
     @FXML private Label lblTiempoRestante;
     @FXML private ProgressBar progressBarTiempo;
     @FXML private Label lblProgresoPreguntas;
+    // Contenedor para la pregunta padre (si aplica)
+    @FXML private VBox contenedorPreguntaPadreInfo; // Necesitarás añadirlo al FXML
+    @FXML private Label lblTextoPreguntaPadre;    // Necesitarás añadirlo al FXML
     @FXML private Label lblNumeroPregunta;
     @FXML private Label lblTextoPregunta;
     @FXML private Label lblTipoPreguntaInfo;
@@ -70,16 +74,33 @@ public class PresentacionExamenController implements Initializable {
     private static final String TIPO_RELACIONAR_CONCEPTOS = "Relacionar conceptos";
     private static final String TIPO_SELECCION_UNICA_UNA_CORRECTA = "Seleccion Unica";
 
-    // Para Relacionar Conceptos:
-    // No necesitamos un DataFormat especial si solo transferimos texto.
-    // private static final DataFormat DRAGGED_LABEL_DATA_FORMAT = new DataFormat("application/x-java-dragged-label");
     private Map<Label, String> draggableConceptBMap = new HashMap<>();
     private Map<Label, String> targetConceptAMap = new HashMap<>();
 
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // initData se llama externamente
+        // Inicializar contenedorPreguntaPadreInfo si se añade desde código
+        if (contenedorPreguntaPadreInfo == null) { // Si no lo añades al FXML
+            contenedorPreguntaPadreInfo = new VBox();
+            contenedorPreguntaPadreInfo.getStyleClass().add("info-pregunta-padre");
+            contenedorPreguntaPadreInfo.setManaged(false);
+            contenedorPreguntaPadreInfo.setVisible(false);
+            lblTextoPreguntaPadre = new Label();
+            lblTextoPreguntaPadre.getStyleClass().add("texto-pregunta-padre");
+            lblTextoPreguntaPadre.setWrapText(true);
+            contenedorPreguntaPadreInfo.getChildren().add(lblTextoPreguntaPadre);
+        }
+        // Asegurar que los labels existan, incluso si no están en el FXML inicialmente
+        if (lblTextoPreguntaPadre == null) {
+            lblTextoPreguntaPadre = new Label();
+            // ... (configurar estilo y añadirlo a un contenedor si es necesario)
+        }
+        if (contenedorPreguntaPadreInfo == null) {
+            contenedorPreguntaPadreInfo = new VBox(lblTextoPreguntaPadre);
+            // ... (configurar estilo y añadirlo al layout principal si es necesario)
+        }
+
     }
 
     public void initData(Estudiante estudiante, int examenId, int presentacionExamenId, Examen infoExamenGeneral) {
@@ -108,11 +129,10 @@ public class PresentacionExamenController implements Initializable {
         try {
             this.preguntasDelExamen = examenRepository.obtenerPreguntasParaPresentacion(this.idPresentacionExamen);
             if (this.preguntasDelExamen == null || this.preguntasDelExamen.isEmpty()) {
-                mostrarAlerta(Alert.AlertType.ERROR, "Error de Examen", "No se pudieron cargar las preguntas para este examen. Por favor, contacte al administrador.");
+                mostrarAlerta(Alert.AlertType.ERROR, "Error de Examen", "No se pudieron cargar las preguntas para este examen.");
                 btnSiguiente.setDisable(true);
                 btnAnterior.setDisable(true);
                 btnFinalizarExamen.setDisable(true);
-                btnMarcarParaRevision.setDisable(true);
                 return;
             }
             preguntaActualIndex = 0;
@@ -122,7 +142,7 @@ public class PresentacionExamenController implements Initializable {
         } catch (SQLException e) {
             System.err.println("Error SQL al cargar preguntas del examen: " + e.getMessage());
             e.printStackTrace();
-            mostrarAlerta(Alert.AlertType.ERROR, "Error de Base de Datos", "Hubo un problema al cargar las preguntas del examen. Verifique su conexión e inténtelo de nuevo.");
+            mostrarAlerta(Alert.AlertType.ERROR, "Error de Base de Datos", "Hubo un problema al cargar las preguntas del examen.");
         }
     }
 
@@ -131,12 +151,52 @@ public class PresentacionExamenController implements Initializable {
             return;
         }
         PreguntaPresentacionDTO preguntaActual = preguntasDelExamen.get(preguntaActualIndex);
-        lblNumeroPregunta.setText("Pregunta " + (preguntaActualIndex + 1) + ":");
+
+        // Limpiar y preparar el contenedor de la pregunta padre
+        contenedorPreguntaPadreInfo.getChildren().clear(); // Limpiar cualquier contenido previo
+        contenedorPreguntaPadreInfo.setVisible(false);
+        contenedorPreguntaPadreInfo.setManaged(false);
+        lblTextoPregunta.getStyleClass().remove("texto-subpregunta"); // Resetear estilo de indentación
+
+        if (preguntaActual.getIdPreguntaPadreOriginal() != null && preguntaActual.getIdPreguntaPadreOriginal() > 0) {
+            // Es una subpregunta, buscar el texto de la pregunta padre
+            final Integer idPadre = preguntaActual.getIdPreguntaPadreOriginal();
+            Optional<PreguntaPresentacionDTO> padreOpt = preguntasDelExamen.stream()
+                    .filter(p -> p.getIdPreguntaOriginal() == idPadre)
+                    .findFirst();
+
+            if (padreOpt.isPresent()) {
+                lblTextoPreguntaPadre.setText("Contexto (Pregunta Padre): " + padreOpt.get().getTextoPregunta());
+                if (!contenedorPreguntaPadreInfo.getChildren().contains(lblTextoPreguntaPadre)) {
+                    contenedorPreguntaPadreInfo.getChildren().add(lblTextoPreguntaPadre);
+                }
+                // Añadir el contenedor de info del padre al layout principal si no está
+                VBox preguntaActualContainer = (VBox) scrollPanePregunta.getContent(); // Asumiendo que el content es VBox
+                if (!preguntaActualContainer.getChildren().contains(contenedorPreguntaPadreInfo)) {
+                    // Insertar antes del número de la subpregunta
+                    int indexLblNumero = preguntaActualContainer.getChildren().indexOf(lblNumeroPregunta);
+                    if (indexLblNumero != -1) {
+                        preguntaActualContainer.getChildren().add(indexLblNumero, contenedorPreguntaPadreInfo);
+                    } else { // fallback
+                        preguntaActualContainer.getChildren().add(0, contenedorPreguntaPadreInfo);
+                    }
+                }
+                contenedorPreguntaPadreInfo.setVisible(true);
+                contenedorPreguntaPadreInfo.setManaged(true);
+                lblTextoPregunta.getStyleClass().add("texto-subpregunta"); // Aplicar indentación
+                lblNumeroPregunta.setText("Subpregunta " + (preguntaActualIndex + 1) + ":"); // O una numeración más elaborada
+            } else {
+                lblNumeroPregunta.setText("Pregunta " + (preguntaActualIndex + 1) + ":");
+            }
+        } else {
+            lblNumeroPregunta.setText("Pregunta " + (preguntaActualIndex + 1) + ":");
+        }
+
         lblTextoPregunta.setText(preguntaActual.getTextoPregunta());
         lblTipoPreguntaInfo.setText("(Tipo: " + preguntaActual.getTipoPreguntaNombre() + ")");
 
         if (preguntaActual.getTiempoSugerido() != null && !preguntaActual.getTiempoSugerido().isEmpty() && !preguntaActual.getTiempoSugerido().trim().equals("0")) {
-            lblTiempoSugeridoPregunta.setText("Tiempo sugerido para esta pregunta: " + preguntaActual.getTiempoSugerido() + " min");
+            lblTiempoSugeridoPregunta.setText("Tiempo sugerido: " + preguntaActual.getTiempoSugerido() + " min");
             lblTiempoSugeridoPregunta.setVisible(true);
             lblTiempoSugeridoPregunta.setManaged(true);
         } else {
@@ -419,8 +479,6 @@ public class PresentacionExamenController implements Initializable {
             }
             Dragboard db = sourceLabel.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
-            // El texto original ya está en el Label, y lo recuperaremos del mapa si es necesario.
-            // Lo importante es transferir el texto que el Label *muestra actualmente*.
             content.putString(sourceLabel.getText());
             db.setContent(content);
             db.setDragView(sourceLabel.snapshot(null, null));
@@ -430,9 +488,7 @@ public class PresentacionExamenController implements Initializable {
 
     private void configurarDropTargetRelacionar(Label targetDropLabel, VBox sourceConceptBContainer) {
         targetDropLabel.setOnDragOver(event -> {
-            // Aceptar el drop solo si la fuente es un Label y el portapapeles tiene un String
             if (event.getGestureSource() instanceof Label && event.getDragboard().hasString()) {
-                // Solo permitir soltar si el destino está vacío ("[Arrastra aquí]")
                 if (targetDropLabel.getText().equals("[Arrastra aquí]") || targetDropLabel.getText().isEmpty()) {
                     event.acceptTransferModes(TransferMode.MOVE);
                 }
@@ -455,29 +511,23 @@ public class PresentacionExamenController implements Initializable {
         targetDropLabel.setOnDragDropped(event -> {
             Dragboard db = event.getDragboard();
             boolean success = false;
-            if (db.hasString()) { // Solo necesitamos verificar si hay un String
-                String draggedConceptBText = db.getString(); // Texto del concepto B arrastrado
+            if (db.hasString()) {
+                String draggedConceptBText = db.getString();
 
-                // Encontrar el Label original en la columna B que corresponde a este texto y que está habilitado
                 Label sourceLabelConceptBOriginal = null;
                 for (Map.Entry<Label, String> entry : draggableConceptBMap.entrySet()) {
-                    // Comparamos el texto del Dragboard con el valor en el mapa (texto original del Label)
-                    // Y nos aseguramos que el Label fuente (entry.getKey()) no esté ya deshabilitado.
                     if (entry.getValue().equals(draggedConceptBText) && !entry.getKey().isDisabled()) {
                         sourceLabelConceptBOriginal = entry.getKey();
                         break;
                     }
                 }
 
-                // Si no encontramos un Label fuente válido (ya fue usado o no existe), no hacer nada.
                 if (sourceLabelConceptBOriginal == null) {
                     event.setDropCompleted(false);
                     event.consume();
                     return;
                 }
 
-                // 1. Si el targetDropLabel (destino en Col A) ya tenía un concepto B:
-                //    Devolver ese concepto B previo a la columna B (reactivarlo).
                 if (!targetDropLabel.getText().equals("[Arrastra aquí]") && !targetDropLabel.getText().isEmpty()) {
                     String previousConceptBInTarget = targetDropLabel.getText();
                     Optional<Label> originalLabelToReactivateOpt = draggableConceptBMap.entrySet().stream()
@@ -490,16 +540,13 @@ public class PresentacionExamenController implements Initializable {
                         labelToReactivate.setDisable(false);
                         labelToReactivate.setVisible(true);
                         labelToReactivate.setManaged(true);
-                        // No es necesario re-añadirlo a sourceConceptBContainer si solo se ocultó/deshabilitó.
                     }
                 }
 
-                // 2. Colocar el nuevo concepto B arrastrado en el targetDropLabel
                 targetDropLabel.setText(draggedConceptBText);
                 targetDropLabel.getStyleClass().remove("concepto-destino-item");
                 targetDropLabel.getStyleClass().add("concepto-destino-item-lleno");
 
-                // 3. Deshabilitar/ocultar el Label original del concepto B que se acaba de arrastrar
                 sourceLabelConceptBOriginal.setDisable(true);
                 sourceLabelConceptBOriginal.setVisible(false);
                 sourceLabelConceptBOriginal.setManaged(false);

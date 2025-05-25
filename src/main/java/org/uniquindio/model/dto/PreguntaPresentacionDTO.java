@@ -2,56 +2,51 @@ package org.uniquindio.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.uniquindio.model.entity.evaluacion.OpcionPregunta; // Asumiendo que OpcionPregunta es tu entidad para las opciones
-
 import java.util.List;
 
 @Getter
 @Setter
 public class PreguntaPresentacionDTO {
-    private int preguntaExamenEstudianteId; // ID de la tabla PREGUNTAEXAMENESTUDIANTE (clave para registrar la respuesta)
+    private int preguntaExamenEstudianteId;
+    private int idPreguntaOriginal; // Nuevo campo: ID original de la tabla PREGUNTA
     private String textoPregunta;
-    private String tipoPreguntaNombre; // Ej: "Opción Múltiple", "Verdadero/Falso"
-    private Integer tipoPreguntaId; // El ID del tipo de pregunta, útil para la lógica de la UI
-    private List<OpcionPresentacionDTO> opciones; // Lista de opciones para la pregunta
-    private String tiempoSugerido; // Tiempo sugerido para esta pregunta (si aplica)
+    private String tipoPreguntaNombre;
+    private Integer tipoPreguntaId;
+    private List<OpcionPresentacionDTO> opciones;
+    private String tiempoSugerido;
+    private Integer idPreguntaPadreOriginal;
 
-    // Constructor
-    public PreguntaPresentacionDTO(int preguntaExamenEstudianteId, String textoPregunta, String tipoPreguntaNombre, Integer tipoPreguntaId, List<OpcionPresentacionDTO> opciones, String tiempoSugerido) {
+    // Constructor actualizado
+    public PreguntaPresentacionDTO(int preguntaExamenEstudianteId,
+                                   int idPreguntaOriginal, // Añadido al constructor
+                                   String textoPregunta,
+                                   String tipoPreguntaNombre, Integer tipoPreguntaId,
+                                   List<OpcionPresentacionDTO> opciones, String tiempoSugerido,
+                                   Integer idPreguntaPadreOriginal) {
         this.preguntaExamenEstudianteId = preguntaExamenEstudianteId;
+        this.idPreguntaOriginal = idPreguntaOriginal; // Asignar nuevo campo
         this.textoPregunta = textoPregunta;
         this.tipoPreguntaNombre = tipoPreguntaNombre;
         this.tipoPreguntaId = tipoPreguntaId;
         this.opciones = opciones;
         this.tiempoSugerido = tiempoSugerido;
+        this.idPreguntaPadreOriginal = idPreguntaPadreOriginal;
     }
 
-    // Podrías necesitar un DTO interno para las opciones también, para no exponer la entidad completa
-    // o para simplificar la información que se envía a la UI.
+    // Getters y Setters son generados por Lombok
+
     public static class OpcionPresentacionDTO {
-        private int idOpcion; // ID de la OpcionPregunta
+        private int idOpcion;
         private String textoOpcion;
-        // No incluir 'esCorrecta' aquí, ya que el estudiante no debería verla durante el examen.
 
         public OpcionPresentacionDTO(int idOpcion, String textoOpcion) {
             this.idOpcion = idOpcion;
             this.textoOpcion = textoOpcion;
         }
 
-        public int getIdOpcion() {
-            return idOpcion;
-        }
-
-        public String getTextoOpcion() {
-            return textoOpcion;
-        }
-
-        public void setIdOpcion(int idOpcion) {
-            this.idOpcion = idOpcion;
-        }
-
-        public void setTextoOpcion(String textoOpcion) {
-            this.textoOpcion = textoOpcion;
-        }
+        public int getIdOpcion() { return idOpcion; }
+        public String getTextoOpcion() { return textoOpcion; }
+        public void setIdOpcion(int idOpcion) { this.idOpcion = idOpcion; }
+        public void setTextoOpcion(String textoOpcion) { this.textoOpcion = textoOpcion; }
     }
 }

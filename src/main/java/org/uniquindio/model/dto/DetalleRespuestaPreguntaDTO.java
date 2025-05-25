@@ -8,20 +8,21 @@ import java.util.List;
 @Getter
 @Setter
 public class DetalleRespuestaPreguntaDTO {
-    private int preguntaExamenEstudianteId; // ID de la tabla PREGUNTAEXAMENESTUDIANTE
+    private int preguntaExamenEstudianteId;
     private String textoPregunta;
-    private String tipoPreguntaNombre; // Ej: "Opción Múltiple", "Verdadero/Falso"
-    private String respuestaEstudiante; // Lo que el estudiante respondió (texto o ID de opción)
-    private List<String> opcionesCorrectasTexto; // Texto de la(s) opción(es) correcta(s)
-    private List<Integer> opcionesCorrectasId; // IDs de la(s) opción(es) correcta(s) (si aplica)
+    private String tipoPreguntaNombre;
+    private String respuestaEstudiante;
+    private List<String> opcionesCorrectasTexto;
+    private List<Integer> opcionesCorrectasId;
     private boolean esCorrectaLaRespuesta;
-    private String feedbackEspecifico; // Retroalimentación específica para esta pregunta, si la hay
+    private String feedbackEspecifico;
+    private Integer idPreguntaPadreOriginal; // Nuevo campo
 
     // Constructor completo
     public DetalleRespuestaPreguntaDTO(int preguntaExamenEstudianteId, String textoPregunta, String tipoPreguntaNombre,
                                        String respuestaEstudiante, List<String> opcionesCorrectasTexto,
                                        List<Integer> opcionesCorrectasId, boolean esCorrectaLaRespuesta,
-                                       String feedbackEspecifico) {
+                                       String feedbackEspecifico, Integer idPreguntaPadreOriginal) { // Añadido al constructor
         this.preguntaExamenEstudianteId = preguntaExamenEstudianteId;
         this.textoPregunta = textoPregunta;
         this.tipoPreguntaNombre = tipoPreguntaNombre;
@@ -30,6 +31,18 @@ public class DetalleRespuestaPreguntaDTO {
         this.opcionesCorrectasId = opcionesCorrectasId;
         this.esCorrectaLaRespuesta = esCorrectaLaRespuesta;
         this.feedbackEspecifico = feedbackEspecifico;
+        this.idPreguntaPadreOriginal = idPreguntaPadreOriginal; // Asignar nuevo campo
     }
 
+    public DetalleRespuestaPreguntaDTO(int peeId, String textoP, String tipoP, String respEst, List<String> optCorrectasTexto, List<Integer> optCorrectasId, boolean esCorrecta, String feedback) {
+        this.preguntaExamenEstudianteId = peeId;
+        this.textoPregunta = textoP;
+        this.tipoPreguntaNombre = tipoP;
+        this.respuestaEstudiante = respEst;
+        this.opcionesCorrectasTexto = optCorrectasTexto;
+        this.opcionesCorrectasId = optCorrectasId;
+        this.esCorrectaLaRespuesta = esCorrecta;
+        this.feedbackEspecifico = feedback;
+        this.idPreguntaPadreOriginal = null; // Inicializar a null por defecto
+    }
 }

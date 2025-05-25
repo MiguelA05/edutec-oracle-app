@@ -10,15 +10,13 @@ import java.math.BigDecimal;
 public class PreguntaBancoDTO {
     private int idPregunta;
     private String texto;
-    private String tiempo; // VARCHAR2(100) en DB
-    private BigDecimal porcentajeDefecto; // Porcentaje por defecto de la pregunta
+    private String tiempo;
+    private BigDecimal porcentajeDefecto;
     private String tipoPreguntaNombre;
-    private String contenidoNombre; // Tema
+    private String contenidoNombre;
     private String nivelNombre;
     private String visibilidadNombre;
-    // Puedes añadir el ID original de la pregunta si necesitas referenciar la entidad completa
-    // private Pregunta preguntaOriginal;
-
+    private Integer idPreguntaPadre; // Nuevo campo
 
     public PreguntaBancoDTO(int idPregunta, String texto, String tiempo, BigDecimal porcentajeDefecto,
                             String tipoPreguntaNombre, String contenidoNombre, String nivelNombre, String visibilidadNombre) {
@@ -30,9 +28,14 @@ public class PreguntaBancoDTO {
         this.contenidoNombre = contenidoNombre;
         this.nivelNombre = nivelNombre;
         this.visibilidadNombre = visibilidadNombre;
+        this.idPreguntaPadre = null; // Inicializar a null por defecto
     }
 
-    // Si necesitas la entidad original para pasarla al diálogo de edición
-    // public Pregunta getPreguntaOriginal() { return preguntaOriginal; }
-    // public void setPreguntaOriginal(Pregunta preguntaOriginal) { this.preguntaOriginal = preguntaOriginal; }
+    // Constructor que incluye idPreguntaPadre (opcional, si la consulta lo devuelve directamente)
+    public PreguntaBancoDTO(int idPregunta, String texto, String tiempo, BigDecimal porcentajeDefecto,
+                            String tipoPreguntaNombre, String contenidoNombre, String nivelNombre,
+                            String visibilidadNombre, Integer idPreguntaPadre) {
+        this(idPregunta, texto, tiempo, porcentajeDefecto, tipoPreguntaNombre, contenidoNombre, nivelNombre, visibilidadNombre);
+        this.idPreguntaPadre = idPreguntaPadre;
+    }
 }

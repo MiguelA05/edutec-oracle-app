@@ -12,24 +12,25 @@
 }
 
 .titulo-examen {
-    -fx-font-size: 1.6em;
+    -fx-font-size: 1.6em; /* 20px o 26px */
     -fx-font-weight: bold;
-    -fx-text-fill: #2C3E50;
+    -fx-text-fill: #2C3E50; /* Azul oscuro */
 }
 
 .tiempo-restante {
     -fx-font-size: 1.1em;
-    -fx-text-fill: #E74C3C;
+    -fx-text-fill: #E74C3C; /* Rojo para el tiempo */
     -fx-font-weight: bold;
 }
 
 .progress-bar .bar {
-    -fx-background-color: #007bff;
-    -fx-padding: 4px;
+    -fx-background-color: #007bff; /* Azul para la barra de progreso */
+    -fx-padding: 4px; /* Hace la barra más gruesa */
 }
 .progress-bar .track {
     -fx-background-color: #E9ECEF;
 }
+
 
 .progreso-preguntas {
     -fx-font-size: 0.9em;
@@ -37,15 +38,31 @@
 }
 
 .scroll-pregunta {
-    -fx-background-color: transparent;
+    -fx-background-color: transparent; /* El VBox interno tendrá el fondo */
 }
 
 .contenido-pregunta {
     -fx-background-color: #FFFFFF;
     -fx-padding: 25px 35px;
     -fx-border-color: #E0E0E0;
-    -fx-border-width: 0 1px 1px 1px;
-    -fx-min-height: 400px;
+    -fx-border-width: 0 1px 1px 1px; /* Bordes para separar del header */
+    -fx-min-height: 400px; /* Para asegurar espacio */
+}
+
+/* Estilos para la información de la pregunta padre */
+.info-pregunta-padre {
+    -fx-background-color: #f0f4f8; /* Un fondo ligeramente diferente */
+    -fx-padding: 10px 15px;
+    -fx-border-color: #d6e0ea;
+    -fx-border-width: 0 0 1px 0; /* Borde inferior */
+    -fx-margin-bottom: 10px; /* Espacio antes de la subpregunta */
+}
+
+.texto-pregunta-padre {
+    -fx-font-size: 1.1em;
+    -fx-font-style: italic;
+    -fx-text-fill: #495057; /* Un gris oscuro */
+    -fx-wrap-text: true;
 }
 
 .numero-pregunta {
@@ -61,20 +78,32 @@
     -fx-line-spacing: 3px;
 }
 
+/* Estilo para indentar el texto de una subpregunta */
+.texto-subpregunta {
+    -fx-padding: 0 0 0 20px; /* Indentación a la izquierda */
+}
+
+
 .tipo-pregunta-info {
     -fx-font-size: 0.9em;
-    -fx-text-fill: #7f8c8d;
+    -fx-text-fill: #7f8c8d; /* Gris */
     -fx-font-style: italic;
 }
 .tiempo-sugerido-pregunta {
     -fx-font-size: 0.85em;
-    -fx-text-fill: #007bff;
+    -fx-text-fill: #007bff; /* Azul */
     -fx-font-style: italic;
 }
+
 
 .contenedor-opciones-respuesta {
     -fx-padding: 15px 0;
 }
+/* Indentar las opciones de respuesta de una subpregunta */
+.contenedor-opciones-subpregunta {
+    -fx-padding: 15px 0 15px 20px; /* Indentación a la izquierda */
+}
+
 
 .contenedor-opciones-respuesta .radio-button,
 .contenedor-opciones-respuesta .check-box {
@@ -82,14 +111,14 @@
     -fx-padding: 8px 0;
     -fx-text-fill: #333;
 }
-.opcion-respuesta { /* Clase común para RadioButton y CheckBox para consistencia */
+.opcion-respuesta {
     -fx-font-size: 1.1em;
     -fx-padding: 8px 5px;
     -fx-text-fill: #333;
     -fx-cursor: hand;
 }
 .opcion-respuesta:hover {
-    -fx-background-color: #f0f8ff; /* Un ligero hover para indicar interactividad */
+    -fx-background-color: #f0f8ff;
     -fx-background-radius: 4px;
 }
 
@@ -107,6 +136,7 @@
     -fx-background-color: #007bff;
 }
 
+
 .contenedor-opciones-respuesta .text-area {
     -fx-font-size: 1em;
     -fx-border-color: #BDC3C7;
@@ -116,6 +146,7 @@
 .contenedor-opciones-respuesta .text-area:focused {
     -fx-border-color: #007bff;
 }
+
 
 .footer-navegacion {
     -fx-background-color: #FFFFFF;
@@ -151,6 +182,7 @@
     -fx-background-color: #E0A800;
 }
 
+
 .boton-finalizar {
     -fx-background-color: #28A745;
     -fx-text-fill: white;
@@ -167,62 +199,58 @@ Separator {
     -fx-background-color: #E0E0E0;
 }
 
-/* --- Nuevos Estilos para Ordenar y Relacionar --- */
-
 .instruccion-pregunta {
     -fx-font-size: 1em;
     -fx-font-style: italic;
-    -fx-text-fill: #555555; /* Gris oscuro */
+    -fx-text-fill: #555555;
     -fx-padding-bottom: 10px;
 }
 
-/* Estilos para Ordenar Conceptos */
 .conceptos-ordenar-box {
-    -fx-border-color: #CED4DA; /* Borde gris claro */
+    -fx-border-color: #CED4DA;
     -fx-border-width: 1px;
     -fx-border-radius: 5px;
     -fx-padding: 15px;
-    -fx-background-color: #F8F9FA; /* Fondo muy claro */
-    -fx-min-height: 150px; /* Altura mínima para la zona de arrastre */
-    -fx-spacing: 8px; /* Espacio entre los conceptos */
+    -fx-background-color: #F8F9FA;
+    -fx-min-height: 150px;
+    -fx-spacing: 8px;
 }
 
 .concepto-ordenar-item {
     -fx-padding: 10px 15px;
-    -fx-background-color: #FFFFFF; /* Fondo blanco para cada item */
-    -fx-border-color: #ADB5BD; /* Borde gris */
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #ADB5BD;
     -fx-border-width: 1px;
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
-    -fx-cursor: move; /* Indica que es arrastrable */
+    -fx-cursor: move;
     -fx-font-size: 1.05em;
-    -fx-text-fill: #212529; /* Texto oscuro */
+    -fx-text-fill: #212529;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0.1, 1, 1);
 }
 .concepto-ordenar-item:hover {
-    -fx-background-color: #E9ECEF; /* Ligero cambio al pasar el mouse */
+    -fx-background-color: #E9ECEF;
     -fx-border-color: #007bff;
 }
-.concepto-ordenar-item-dragover { /* Cuando se arrastra sobre un item para reordenar */
-    -fx-border-color: #0056b3; /* Azul más oscuro */
+.concepto-ordenar-item-dragover {
+    -fx-border-color: #0056b3;
     -fx-border-width: 2px;
     -fx-effect: dropshadow(gaussian, #007bff, 8, 0.3, 0, 2);
 }
 
-/* Estilos para Relacionar Conceptos */
 .panel-relacionar-principal {
-    -fx-spacing: 20px; /* Espacio entre las dos columnas principales */
+    -fx-spacing: 20px;
     -fx-alignment: top-left;
 }
 
 .columna-relacionar-a, .columna-relacionar-b {
     -fx-padding: 10px;
-    -fx-spacing: 10px; /* Espacio entre elementos dentro de la columna */
+    -fx-spacing: 10px;
     -fx-background-color: #F8F9FA;
     -fx-border-color: #DEE2E6;
     -fx-border-width: 1px;
     -fx-border-radius: 5px;
-    -fx-min-width: 250px; /* Ancho mínimo para cada columna */
+    -fx-min-width: 250px;
 }
 .columna-relacionar-b {
     -fx-alignment: top-center;
@@ -244,13 +272,13 @@ Separator {
 
 .concepto-fijo-item {
     -fx-padding: 8px 12px;
-    -fx-background-color: #E9ECEF; /* Fondo gris claro para conceptos fijos */
+    -fx-background-color: #E9ECEF;
     -fx-border-color: #CED4DA;
     -fx-border-width: 1px;
     -fx-border-radius: 4px;
     -fx-font-size: 1.05em;
     -fx-text-fill: #212529;
-    -fx-min-width: 150px; /* Para que todos tengan un ancho similar */
+    -fx-min-width: 150px;
 }
 
 .flecha-relacionar {
@@ -259,36 +287,36 @@ Separator {
     -fx-padding: 0 8px;
 }
 
-.concepto-destino-item { /* Placeholder para soltar */
+.concepto-destino-item {
     -fx-padding: 8px 12px;
-    -fx-border-color: #007bff; /* Borde azul */
+    -fx-border-color: #007bff;
     -fx-border-style: dashed;
     -fx-border-width: 1.5px;
     -fx-border-radius: 4px;
-    -fx-background-color: #F0F8FF; /* Azul muy claro (AliceBlue) */
+    -fx-background-color: #F0F8FF;
     -fx-alignment: center-left;
     -fx-font-style: italic;
-    -fx-text-fill: #495057; /* Texto gris */
-    -fx-min-height: 38px; /* Altura similar a otros items */
+    -fx-text-fill: #495057;
+    -fx-min-height: 38px;
     -fx-min-width: 150px;
 }
 
-.concepto-destino-item-lleno { /* Cuando ya tiene un concepto */
+.concepto-destino-item-lleno {
     -fx-padding: 8px 12px;
-    -fx-background-color: #D4EDDA; /* Verde claro para indicar completado */
-    -fx-border-color: #5CB85C; /* Borde verde */
+    -fx-background-color: #D4EDDA;
+    -fx-border-color: #5CB85C;
     -fx-border-width: 1px;
     -fx-border-radius: 4px;
     -fx-font-size: 1.05em;
-    -fx-text-fill: #155724; /* Texto verde oscuro */
+    -fx-text-fill: #155724;
     -fx-min-height: 38px;
     -fx-min-width: 150px;
     -fx-font-style: normal;
 }
 
-.concepto-destino-item-dragover { /* Cuando se arrastra sobre un destino vacío */
-    -fx-background-color: #CCE5FF; /* Azul más claro */
-    -fx-border-color: #0056b3; /* Borde azul oscuro */
+.concepto-destino-item-dragover {
+    -fx-background-color: #CCE5FF;
+    -fx-border-color: #0056b3;
     -fx-border-width: 2px;
     -fx-border-style: solid;
 }
@@ -304,7 +332,7 @@ Separator {
     -fx-text-fill: #212529;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0.1, 1, 1);
     -fx-alignment: center;
-    -fx-pref-width: 200px; /* Ancho preferido para los items en la columna B */
+    -fx-pref-width: 200px;
     -fx-max-width: 200px;
 }
 .concepto-relacionar-draggable:hover {
