@@ -174,7 +174,6 @@ public class ExamenesDisponiblesProfesorController {
     }
 
     private void configurarColumnaAcciones() {
-        // ... (código de configurarColumnaAcciones sin cambios)
         colAccionExamenDisp.setCellFactory(param -> new TableCell<>() {
             private final Button btnEditar = new Button("Editar");
             private final Button btnEliminar = new Button("Eliminar");

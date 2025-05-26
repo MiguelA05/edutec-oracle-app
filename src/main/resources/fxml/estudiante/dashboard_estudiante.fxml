@@ -30,10 +30,7 @@
                 </VBox>
                 <Separator prefWidth="200.0" />
                 <Button fx:id="btnInicio" onAction="#handleInicio" styleClass="boton-navegacion" text="Inicio" prefWidth="Infinity"/>
-                <Button fx:id="btnMisCursos" onAction="#handleMisCursos" styleClass="boton-navegacion" text="Mis Cursos" prefWidth="Infinity"/>
                 <Button fx:id="btnExamenesDisponibles" onAction="#handleExamenesDisponibles" styleClass="boton-navegacion" text="Exámenes Disponibles" prefWidth="Infinity"/>
-                <Button fx:id="btnMisResultados" onAction="#handleMisResultados" styleClass="boton-navegacion" text="Mis Resultados" prefWidth="Infinity"/>
-                <Button fx:id="btnMisHorarios" onAction="#handleMisHorarios" styleClass="boton-navegacion" text="Mis Horarios" prefWidth="Infinity"/>
                 <VBox VBox.vgrow="ALWAYS"/>
                 <Separator prefWidth="200.0" />
                 <Button fx:id="btnCerrarSesion" onAction="#handleCerrarSesion" styleClass="boton-cerrar-sesion" text="Cerrar Sesión" prefWidth="Infinity"/>

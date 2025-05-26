@@ -17,7 +17,7 @@ public class DetalleRespuestaPreguntaDTO {
     private boolean esCorrectaLaRespuesta;
     private String feedbackEspecifico;
     private int idPreguntaOriginalPropia; // ID de la PREGUNTA original
-    private Integer idPreguntaPadreOriginal; // Nuevo campo
+    private Integer idPreguntaPadreOriginal;
 
     // Constructor completo
     public DetalleRespuestaPreguntaDTO(int preguntaExamenEstudianteId, String textoPregunta, String tipoPreguntaNombre,
