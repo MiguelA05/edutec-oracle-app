@@ -268,7 +268,7 @@ public class ExamenesDisponiblesProfesorController {
                     hora = examenEntidad.getHora().toLocalTime();
                 }
 
-                String nombreCurso = "Curso Desconocido"; // Valor por defecto
+                String nombreCurso = "Curso no asignado";
                 Integer cursoIdObj = examenEntidad.getCursoId(); // Puede ser null si es Integer
 
                 if (cursoIdObj != null && cursoIdObj != 0) {

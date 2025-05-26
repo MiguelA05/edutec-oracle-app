@@ -144,8 +144,10 @@ public class CrearEditarExamenController implements Initializable {
         txtDescripcionExamen.clear();
         comboCurso.getSelectionModel().clearSelection();
         comboCurso.setValue(null);
+        comboCurso.setPromptText("Seleccione un curso");
         comboCategoria.getSelectionModel().clearSelection();
         comboCategoria.setValue(null);
+        comboCategoria.setPromptText("Seleccione un curso");
 
         if (spinnerPesoCurso.getValueFactory() != null) spinnerPesoCurso.getValueFactory().setValue(20);
         if (spinnerUmbralAprobacion.getValueFactory() != null) ((SpinnerValueFactory.DoubleSpinnerValueFactory)spinnerUmbralAprobacion.getValueFactory()).setValue(3.0);

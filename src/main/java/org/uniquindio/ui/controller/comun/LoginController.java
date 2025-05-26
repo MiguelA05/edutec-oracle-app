@@ -224,7 +224,6 @@ public class LoginController implements Initializable {
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.setTitle("EduTec - " + rol);
-        stage.setMaximized(true); // O ajusta el tamaño como prefieras
         stage.show();
     }
 

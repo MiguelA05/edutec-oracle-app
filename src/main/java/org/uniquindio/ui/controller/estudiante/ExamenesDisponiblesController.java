@@ -193,15 +193,18 @@ public class ExamenesDisponiblesController implements Initializable {
         Optional<ButtonType> resultado = confirmacion.showAndWait();
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
             try {
-                String ipAddress = "127.0.0.1"; // IP por defecto
+                String ipAddress = "127.0.0.1";
                 try {
                     ipAddress = InetAddress.getLocalHost().getHostAddress();
                 } catch (UnknownHostException e) {
-                    System.err.println("No se pudo obtener la IP local: " + e.getMessage());
+                    System.err.println("Advertencia: No se pudo obtener la IP local automáticamente, usando IP por defecto ("+ ipAddress +"): " + e.getMessage());
                 }
 
-                // Llamar al repositorio para iniciar la presentación (esto llamará al PL/SQL)
-                int idPresentacion = examenRepository.iniciarPresentacionExamen(estudianteLogueado.getCedula(), examenAPresentar.getId(), ipAddress);
+                int idPresentacion = examenRepository.iniciarPresentacionExamen(
+                        estudianteLogueado.getCedula(),
+                        examenAPresentar.getId(),
+                        ipAddress // Se pasa la IP al método del repositorio
+                );
 
                 if (idPresentacion > 0) {
                     // Navegar a la pantalla de presentación del examen
@@ -211,22 +214,34 @@ public class ExamenesDisponiblesController implements Initializable {
                     PresentacionExamenController presentacionController = loader.getController();
                     presentacionController.initData(estudianteLogueado, examenAPresentar.getId(), idPresentacion, examenAPresentar);
 
-                    Stage stage = (Stage) tablaExamenesDisponibles.getScene().getWindow(); // Obtener el stage actual
+                    Stage stage = (Stage) (tablaExamenesDisponibles != null ? tablaExamenesDisponibles.getScene().getWindow() : new Stage());
                     Scene scene = new Scene(rootPresentacion);
                     stage.setScene(scene);
                     stage.setTitle("EduTec - Presentando Examen: " + examenAPresentar.getDescripcion());
-                    stage.setMaximized(true); // Maximizar la ventana del examen
+                    if (tablaExamenesDisponibles == null) stage.show();
 
                 } else {
-                    // El PL/SQL no devolvió un ID válido (podría ser un error manejado en PL/SQL)
-                    mostrarAlerta(Alert.AlertType.ERROR, "Error al Iniciar", "No se pudo iniciar el examen. Verifique si cumple los requisitos.");
+                    mostrarAlerta(Alert.AlertType.ERROR, "Error al Iniciar", "No se pudo iniciar el examen. Verifique si cumple los requisitos o si ya tiene una presentación activa/finalizada.");
                 }
 
             } catch (SQLException e) {
-                mostrarAlerta(Alert.AlertType.ERROR, "Error de Base de Datos", "No se pudo iniciar el examen: " + e.getMessage());
+                String mensajeError = e.getMessage();
+                if (mensajeError != null && mensajeError.contains("ORA-20")) {
+                    mensajeError = mensajeError.substring(mensajeError.indexOf("ORA-20") + 9);
+                    int endPos = mensajeError.indexOf("ORA-");
+                    if (endPos != -1) {
+                        mensajeError = mensajeError.substring(0, endPos).trim();
+                    }
+                } else {
+                    mensajeError = "Error de base de datos al intentar iniciar el examen.";
+                }
+                mostrarAlerta(Alert.AlertType.ERROR, "Error de Base de Datos", mensajeError);
                 e.printStackTrace();
             } catch (IOException e) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Error de Carga", "No se pudo abrir la pantalla de presentación del examen.");
+                e.printStackTrace();
+            } catch (Exception e) {
+                mostrarAlerta(Alert.AlertType.ERROR, "Error Inesperado", "Ocurrió un error inesperado: " + e.getMessage());
                 e.printStackTrace();
             }
         }
