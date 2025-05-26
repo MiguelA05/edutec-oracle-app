@@ -4,22 +4,16 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.Region?>
 
-<VBox fx:id="rootInicioProfesor" alignment="TOP_CENTER" spacing="30.0" styleClass="inicio-profesor-pane"
-      stylesheets="@../../css/profesor/inicio_profesor_content.css"
-      xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/21"
-      fx:controller="org.uniquindio.ui.controller.profesor.InicioProfesorContentController">
+<VBox fx:id="rootInicioProfesor" alignment="TOP_CENTER" spacing="30.0" styleClass="inicio-profesor-pane" stylesheets="@../../css/profesor/inicio_profesor_content.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.uniquindio.ui.controller.profesor.InicioProfesorContentController">
     <padding>
-        <Insets top="20.0" right="40.0" bottom="20.0" left="40.0"/>
+        <Insets bottom="20.0" left="40.0" right="40.0" top="20.0" />
     </padding>
     <children>
         <Label fx:id="lblBienvenidaProfesor" styleClass="titulo-bienvenida-profesor" text="Bienvenido, Profesor [Nombre Profesor]!" wrapText="true">
@@ -28,79 +22,61 @@
             </font>
         </Label>
 
-        <GridPane hgap="30.0" vgap="30.0" alignment="CENTER">
+        <GridPane alignment="CENTER" hgap="30.0" vgap="30.0">
             <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0"/>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0"/>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0" />
             </columnConstraints>
             <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="180.0" vgrow="SOMETIMES"/>
-                <RowConstraints minHeight="10.0" prefHeight="180.0" vgrow="SOMETIMES"/>
+                <RowConstraints minHeight="10.0" prefHeight="180.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="180.0" vgrow="SOMETIMES" />
             </rowConstraints>
             <children>
-                <VBox styleClass="info-card-profesor" GridPane.columnIndex="0" GridPane.rowIndex="0" alignment="TOP_CENTER" spacing="10">
-                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                        <image><Image url="https://placehold.co/64x64/1abc9c/white?text=🎓"/></image>
-                    </ImageView>
-                    <Label styleClass="card-titulo-profesor" text="Mis Cursos Activos"/>
-                    <Separator prefWidth="150.0"/>
-                    <Label fx:id="lblCursosActivosInfo" styleClass="card-contenido-profesor" text="[N] cursos asignados" wrapText="true"/>
-                    <Button styleClass="card-boton-profesor" text="Gestionar Cursos" onAction="#irAGestionCursos"/>
+                <VBox alignment="TOP_CENTER" prefHeight="294.0" prefWidth="300.0" spacing="10" styleClass="info-card-profesor" GridPane.columnIndex="0" GridPane.rowIndex="0" VBox.vgrow="NEVER">
+                    <Label styleClass="card-titulo-profesor" text="Mis Cursos Activos" />
+                    <Separator prefWidth="150.0" />
+                    <Label fx:id="lblCursosActivosInfo" styleClass="card-contenido-profesor" text="[N] cursos asignados" wrapText="true" />
+                    <Button onAction="#irAGestionCursos" styleClass="card-boton-profesor" text="Gestionar Cursos" />
                 </VBox>
 
-                <VBox styleClass="info-card-profesor" GridPane.columnIndex="1" GridPane.rowIndex="0" alignment="TOP_CENTER" spacing="10">
-                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                        <image><Image url="https://placehold.co/64x64/3498db/white?text=📝"/></image>
-                    </ImageView>
-                    <Label styleClass="card-titulo-profesor" text="Exámenes Creados"/>
-                    <Separator prefWidth="150.0"/>
-                    <Label fx:id="lblExamenesCreadosInfo" styleClass="card-contenido-profesor" text="[M] exámenes en total" wrapText="true"/>
-                    <Button styleClass="card-boton-profesor" text="Crear/Ver Exámenes" onAction="#irAGestionExamenes"/>
+                <VBox alignment="TOP_CENTER" spacing="10" styleClass="info-card-profesor" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <Label styleClass="card-titulo-profesor" text="Exámenes Creados" />
+                    <Separator prefWidth="150.0" />
+                    <Label fx:id="lblExamenesCreadosInfo" styleClass="card-contenido-profesor" text="[M] exámenes en total" wrapText="true" />
+                    <Button onAction="#irAGestionExamenes" styleClass="card-boton-profesor" text="Crear/Ver Exámenes" />
                 </VBox>
 
-                <VBox styleClass="info-card-profesor" GridPane.columnIndex="2" GridPane.rowIndex="0" alignment="TOP_CENTER" spacing="10">
-                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                        <image><Image url="https://placehold.co/64x64/9b59b6/white?text=❓"/></image>
-                    </ImageView>
-                    <Label styleClass="card-titulo-profesor" text="Banco de Preguntas"/>
-                    <Separator prefWidth="150.0"/>
-                    <Label fx:id="lblPreguntasBancoInfo" styleClass="card-contenido-profesor" text="[P] preguntas disponibles" wrapText="true"/>
-                    <Button styleClass="card-boton-profesor" text="Ir al Banco" onAction="#irABancoPreguntas"/>
+                <VBox alignment="TOP_CENTER" spacing="10" styleClass="info-card-profesor" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                    <Label styleClass="card-titulo-profesor" text="Banco de Preguntas" />
+                    <Separator prefWidth="150.0" />
+                    <Label fx:id="lblPreguntasBancoInfo" styleClass="card-contenido-profesor" text="[P] preguntas disponibles" wrapText="true" />
+                    <Button onAction="#irABancoPreguntas" styleClass="card-boton-profesor" text="Ir al Banco" />
                 </VBox>
 
-                <VBox styleClass="info-card-profesor" GridPane.columnIndex="0" GridPane.rowIndex="1" alignment="TOP_CENTER" spacing="10">
-                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                        <image><Image url="https://placehold.co/64x64/f1c40f/white?text=📈"/></image>
-                    </ImageView>
-                    <Label styleClass="card-titulo-profesor" text="Rendimiento General"/>
-                    <Separator prefWidth="150.0"/>
-                    <Label fx:id="lblRendimientoInfo" styleClass="card-contenido-profesor" text="Promedio general: [X]" wrapText="true"/>
-                    <Button styleClass="card-boton-profesor" text="Ver Estadísticas" onAction="#irAEstadisticas"/>
+                <VBox alignment="TOP_CENTER" spacing="10" styleClass="info-card-profesor" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                    <Label styleClass="card-titulo-profesor" text="Rendimiento General" />
+                    <Separator prefWidth="150.0" />
+                    <Label fx:id="lblRendimientoInfo" styleClass="card-contenido-profesor" text="Promedio general: [X]" wrapText="true" />
+                    <Button onAction="#irAEstadisticas" styleClass="card-boton-profesor" text="Ver Estadísticas" />
                 </VBox>
 
-                <VBox styleClass="info-card-profesor" GridPane.columnIndex="1" GridPane.rowIndex="1" alignment="TOP_CENTER" spacing="10">
-                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                        <image><Image url="https://placehold.co/64x64/2ecc71/white?text=➕"/></image>
-                    </ImageView>
-                    <Label styleClass="card-titulo-profesor" text="Nueva Pregunta"/>
-                    <Separator prefWidth="150.0"/>
-                    <Label styleClass="card-contenido-profesor" text="Añade nuevas preguntas a tu banco personal o público." wrapText="true"/>
-                    <Button styleClass="card-boton-profesor" text="Crear Pregunta" onAction="#irAGestionPreguntas"/>
+                <VBox alignment="TOP_CENTER" spacing="10" styleClass="info-card-profesor" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <Label styleClass="card-titulo-profesor" text="Nueva Pregunta" />
+                    <Separator prefWidth="150.0" />
+                    <Label styleClass="card-contenido-profesor" text="Añade nuevas preguntas a tu banco personal o público." wrapText="true" />
+                    <Button onAction="#irAGestionPreguntas" styleClass="card-boton-profesor" text="Crear Pregunta" />
                 </VBox>
 
-                <VBox styleClass="info-card-profesor" GridPane.columnIndex="2" GridPane.rowIndex="1" alignment="TOP_CENTER" spacing="10">
-                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                        <image><Image url="https://placehold.co/64x64/e67e22/white?text=🕒"/></image>
-                    </ImageView>
-                    <Label styleClass="card-titulo-profesor" text="Mis Horarios"/>
-                    <Separator prefWidth="150.0"/>
-                    <Label fx:id="lblHorariosInfo" styleClass="card-contenido-profesor" text="Consulta tus horarios de clase asignados." wrapText="true"/>
-                    <Button styleClass="card-boton-profesor" text="Ver Horarios" onAction="#irAHorariosProfesor"/>
+                <VBox alignment="TOP_CENTER" spacing="10" styleClass="info-card-profesor" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                    <Label styleClass="card-titulo-profesor" text="Mis Horarios" />
+                    <Separator prefWidth="150.0" />
+                    <Label fx:id="lblHorariosInfo" styleClass="card-contenido-profesor" text="Consulta tus horarios de clase asignados." wrapText="true" />
+                    <Button onAction="#irAHorariosProfesor" styleClass="card-boton-profesor" text="Ver Horarios" />
                 </VBox>
             </children>
         </GridPane>
-        <Region VBox.vgrow="ALWAYS"/>
-        <Label styleClass="footer-info-profesor" text="EduTec - Plataforma de Gestión Académica para Docentes."/>
+        <Region VBox.vgrow="ALWAYS" />
+        <Label styleClass="footer-info-profesor" text="EduTec - Plataforma de Gestión Académica para Docentes." />
     </children>
 </VBox>

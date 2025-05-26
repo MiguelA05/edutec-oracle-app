@@ -1,81 +1,131 @@
-.form-container {
-    -fx-background-color: #FFFFFF;
-    -fx-padding: 20px;
+
+/* ==== CheckBox personalizado ==== */
+.check-box {
+    -fx-font-size: 0.95em;
+    -fx-text-fill: #2c3e50;
 }
 
-.titulo-vista {
-    -fx-font-size: 1.8em; /* 22px o 28px */
-    -fx-font-weight: bold;
-    -fx-text-fill: #2c3e50; /* Azul oscuro/gris */
-    -fx-alignment: center;
-    -fx-padding: 10px;
+.check-box .box {
+    -fx-border-color: #007bff;
+    -fx-border-radius: 3px;
 }
 
-.titled-pane-custom > .title {
-    -fx-background-color: #E9EEF2; /* Un gris azulado claro para el título del panel */
-    -fx-font-weight: bold;
-    -fx-font-size: 1.1em;
-    -fx-text-fill: #34495E;
-    -fx-padding: 8px 12px;
-    -fx-border-color: #D5D8DC;
-    -fx-border-width: 0 0 1px 0; /* Borde inferior */
+.check-box:selected .mark {
+    -fx-background-color: #007bff;
 }
 
-.titled-pane-custom > .title > .arrow-button .arrow {
-    -fx-background-color: #34495E;
+/* ==== GridPane decorado ==== */
+.grid-pane-bordered {
+    -fx-border-color: #007bff;
+    -fx-border-radius: 6px;
+    -fx-padding: 12px;
+    -fx-background-color: #f7faff;
 }
 
-.titled-pane-custom > .content {
+/* ==== Contenedor decorado ==== */
+.container-box {
+    -fx-background-color: #ffffff;
     -fx-padding: 15px;
-    -fx-border-color: #D5D8DC;
-    -fx-border-width: 0 1px 1px 1px; /* Bordes laterales e inferior */
+    -fx-border-color: #cfe2ff;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
 }
 
-.form-label {
-    -fx-font-size: 1em;
-    -fx-text-fill: #4A4A4A;
-    -fx-padding: 5px 0 0 0; /* Alineación con campos */
-}
-
-.form-label-bold {
-    -fx-font-size: 1em;
-    -fx-font-weight: bold;
-    -fx-text-fill: #333333;
-}
-
-.text-field, .combo-box, .date-picker, .spinner {
-    -fx-pref-height: 35px;
-    -fx-font-size: 0.95em;
-    -fx-border-color: #BDC3C7;
+/* ==== Spinner mejorado ==== */
+.spinner {
+    -fx-background-color: white;
+    -fx-border-color: #007bff;
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
-}
-
-.text-field:focused, .combo-box:focused, .date-picker:focused, .spinner:focused {
-    -fx-border-color: #3498DB; /* Azul al enfocar */
-    -fx-effect: dropshadow(gaussian, #3498DB, 3, 0.1, 0, 0);
-}
-
-.text-area {
     -fx-font-size: 0.95em;
-    -fx-border-color: #BDC3C7;
+}
+
+.spinner:focused {
+    -fx-border-color: #007bff;
+    -fx-effect: dropshadow(gaussian, #007bff, 3, 0.2, 0, 0);
+}
+
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: #e6f0ff;
+    -fx-border-color: transparent;
+}
+
+.spinner .increment-arrow-button:hover,
+.spinner .decrement-arrow-button:hover {
+    -fx-background-color: #d0e3ff;
+}
+
+/* ==== ComboBox refinado ==== */
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #007bff;
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
-    -fx-wrap-text: true;
-}
-.text-area:focused {
-    -fx-border-color: #3498DB;
+    -fx-font-size: 0.95em;
+    -fx-text-fill: #2c3e50;
 }
 
+.combo-box:focused {
+    -fx-effect: dropshadow(gaussian, #007bff, 3, 0.2, 0, 0);
+}
 
+.combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.combo-box .arrow {
+    -fx-background-color: #007bff;
+}
+
+.combo-box .list-cell {
+    -fx-padding: 6px 10px;
+    -fx-background-color: white;
+    -fx-text-fill: #2c3e50;
+}
+
+.combo-box .list-cell:hover {
+    -fx-background-color: #e6f0ff;
+}
+
+.combo-box .list-cell:selected {
+    -fx-background-color: #d0e3ff;
+    -fx-text-fill: #1a1a1a;
+}
+
+/* ==== DatePicker refinado ==== */
+.date-picker {
+    -fx-background-color: white;
+    -fx-border-color: #007bff;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-font-size: 0.95em;
+    -fx-text-fill: #2c3e50;
+}
+
+.date-picker:focused {
+    -fx-border-color: #007bff;
+    -fx-effect: dropshadow(gaussian, #007bff, 3, 0.2, 0, 0);
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.date-picker .arrow {
+    -fx-background-color: #007bff;
+}
+
+/* ==== Tabla mejorada ==== */
 .table-view {
-    -fx-border-color: #D5D8DC;
-    -fx-background-radius: 4px;
+    -fx-border-color: #007bff;
     -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-background-color: #ffffff;
 }
 
 .table-view .column-header-background {
-    -fx-background-color: #F1F4F6;
+    -fx-background-color: #d0e3ff;
 }
 
 .table-view .column-header .label {
@@ -84,29 +134,52 @@
     -fx-padding: 8px;
 }
 
-.button-accion {
-    -fx-background-color: #2ECC71; /* Verde */
-    -fx-text-fill: white;
-    -fx-font-size: 0.9em;
-    -fx-padding: 7px 15px;
-    -fx-background-radius: 4px;
-}
-.button-accion:hover {
-    -fx-background-color: #27AE60;
+.table-view .cell {
+    -fx-padding: 6px;
+    -fx-text-fill: #2c3e50;
+    -fx-font-size: 0.95em;
 }
 
-.button-eliminar-tabla {
-    -fx-background-color: #E74C3C; /* Rojo */
-    -fx-text-fill: white;
-    -fx-font-size: 0.8em;
-    -fx-padding: 4px 8px;
-}
-.button-eliminar-tabla:hover {
-    -fx-background-color: #C0392B;
+.table-view .cell:hover {
+    -fx-background-color: #f0f6ff;
 }
 
+/* Fondo blanco para VBox general dentro del ScrollPane */
+.scroll-content, .scroll-pane .viewport, .scroll-pane .content {
+    -fx-background-color: white;
+}
+
+/* Fondo de VBox explícitamente si se le aplica clase */
+.vbox-background {
+    -fx-background-color: white;
+}
+
+/* Título del TitledPane con blanco grisáceo (diferenciado del fondo) */
+.titled-pane-custom > .title {
+    -fx-background-color: #d6eaff; /* Blanco grisáceo suave */
+    -fx-text-fill: #1a1a1a;
+    -fx-font-weight: bold;
+    -fx-font-size: 1.05em;
+    -fx-padding: 10px 14px;
+    -fx-border-color: #d3d7dc;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.titled-pane-custom > .title > .arrow-button .arrow {
+    -fx-background-color: #1a1a1a;
+}
+
+.titled-pane-custom > .content {
+    -fx-padding: 16px;
+    -fx-border-color: #d3d7dc;
+    -fx-border-width: 0 1px 1px 1px;
+    -fx-background-color: #ffffff;
+}
+
+
+/* === Botón Guardar === */
 .button-guardar {
-    -fx-background-color: #007bff; /* Azul primario */
+    -fx-background-color: #007bff;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-font-size: 1.1em;
@@ -117,8 +190,9 @@
     -fx-background-color: #0056b3;
 }
 
+/* === Botón Cancelar === */
 .button-cancelar {
-    -fx-background-color: #6c757d; /* Gris */
+    -fx-background-color: #6c757d;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-font-size: 1.1em;
@@ -129,8 +203,26 @@
     -fx-background-color: #545b62;
 }
 
-.label-nota {
-    -fx-font-size: 0.85em;
-    -fx-text-fill: #7f8c8d; /* Gris */
-    -fx-font-style: italic;
+/* === Botón Añadir pregunta existente === */
+.button-anadir-existente {
+    -fx-background-color: #17a2b8; /* azul celeste */
+    -fx-text-fill: white;
+    -fx-font-size: 1em;
+    -fx-padding: 8px 18px;
+    -fx-background-radius: 5px;
+}
+.button-anadir-existente:hover {
+    -fx-background-color: #138496;
+}
+
+/* === Botón Crear y añadir nueva pregunta === */
+.button-crear-nueva {
+    -fx-background-color: #28a745; /* verde */
+    -fx-text-fill: white;
+    -fx-font-size: 1em;
+    -fx-padding: 8px 18px;
+    -fx-background-radius: 5px;
+}
+.button-crear-nueva:hover {
+    -fx-background-color: #218838;
 }

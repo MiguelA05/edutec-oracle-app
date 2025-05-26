@@ -1,72 +1,111 @@
+
 /* Estilos generales para el fondo del StackPane principal */
 .background {
-    -fx-background-color: #F0F2F5; /* Un gris claro como fondo general */
+    -fx-background-color: #F0F2F5;
 }
 
-/* Panel Izquierdo: Imagen de fondo con logo y eslogan */
 .left-panel {
-    -fx-background-color: #007bff; /* Un azul primario, puedes cambiarlo o usar una imagen */
-    /* Para usar una imagen de fondo:
-    -fx-background-image: url("@../images/tu_imagen_de_fondo.png");
-    -fx-background-size: cover;
-    -fx-background-position: center;
-    */
+    -fx-background-color: #007bff;
     -fx-padding: 40px;
 }
 
 .slogan-text {
-    -fx-font-size: 1.5em; /* 18px si la base es 12px, o 24px si es 16px */
+    -fx-font-size: 1.5em;
     -fx-fill: white;
-    -fx-text-fill: white; /* Para Label, Text */
+    -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-text-alignment: center;
 }
 
-/* Panel Derecho: Formulario de login */
 .login-panel {
     -fx-background-color: white;
     -fx-padding: 40px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0.5, 0, 5); /* Sombra sutil */
-    -fx-background-radius: 8px; /* Bordes redondeados para el panel de login */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0.5, 0, 5);
+    -fx-background-radius: 8px;
 }
 
 .title-text {
-    -fx-font-size: 2.5em; /* 30px o 40px */
+    -fx-font-size: 2.5em;
     -fx-font-weight: bold;
     -fx-fill: #333333;
     -fx-text-fill: #333333;
 }
 
 .welcome-text {
-    -fx-font-size: 1.2em; /* 14px o 19px */
+    -fx-font-size: 1.2em;
     -fx-fill: #555555;
     -fx-text-fill: #555555;
 }
 
 .input-label {
-    -fx-font-size: 1em; /* 12px o 16px */
-    -fx-font-weight: bold;
-    -fx-text-fill: #444444;
+    -fx-font-size: 1em;
+    -fx-font-weight: 600;
+    -fx-text-fill: #2c3e50;
 }
 
-.text-field, .combo-box {
+.text-field {
     -fx-pref-height: 40px;
     -fx-font-size: 1em;
+    -fx-text-fill: #333333;
     -fx-border-color: #CCCCCC;
     -fx-border-width: 1px;
     -fx-border-radius: 5px;
+    -fx-background-color: white;
     -fx-background-radius: 5px;
     -fx-padding: 5px 10px;
 }
 
-.text-field:focused, .combo-box:focused {
+.text-field:focused {
     -fx-border-color: #007bff;
-    -fx-effect: dropshadow(gaussian, #007bff, 5, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #007bff, 5, 0.3, 0, 0);
+}
+
+/* ComboBox estilizado */
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #CCCCCC;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 5px 10px;
+    -fx-font-size: 1em;
+    -fx-text-fill: #333333;
+    -fx-pref-height: 40px;
+}
+
+.combo-box:focused {
+    -fx-border-color: #007bff;
+    -fx-effect: dropshadow(gaussian, #007bff, 5, 0.3, 0, 0);
+}
+
+.combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.combo-box .arrow {
+    -fx-background-color: #007bff;
 }
 
 .combo-box .list-cell {
     -fx-font-size: 1em;
     -fx-padding: 8px;
+    -fx-background-color: white;
+    -fx-text-fill: #333333;
+}
+
+/* Hover en opciones desplegadas */
+.combo-box .list-cell:hover {
+    -fx-background-color: #e6f0ff;
+}
+
+/* Opción seleccionada en lista desplegable (no cambia la visual en el campo de selección) */
+.combo-box .list-cell:selected {
+    -fx-background-color: #e6f0ff;
+    -fx-text-fill: #333333;
+}
+
+.combo-box .text-input {
+    -fx-background-color: transparent;
+    -fx-text-fill: #333333;
 }
 
 .check-box .box {
@@ -98,7 +137,7 @@
 }
 
 .btn-cancel {
-    -fx-background-color: #6c757d; /* Un gris para cancelar */
+    -fx-background-color: #6c757d;
     -fx-text-fill: white;
     -fx-font-size: 1.1em;
     -fx-font-weight: bold;
