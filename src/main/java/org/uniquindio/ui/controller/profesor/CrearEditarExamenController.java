@@ -133,7 +133,7 @@ public class CrearEditarExamenController implements Initializable {
 
         cargarCombosIniciales();
         if (examenActual != null) {
-            cargarExamenParaEdicion(examenActual);
+            cargarExamenParaEdicion(examenActual.getId());
         } else {
             limpiarFormularioExamen();
         }
@@ -168,37 +168,121 @@ public class CrearEditarExamenController implements Initializable {
         txtNombreExamen.requestFocus();
     }
 
-    public void cargarExamenParaEdicion(Examen examen) throws SQLException {
-        if (examen == null) return;
-        this.examenActual = examen; // Asegurar que examenActual está seteado
+    public void cargarExamenParaEdicion(int examenId) throws SQLException {
+        // Inicializar repositorios si no lo están ya
+        if (cursoRepository == null) cursoRepository = new CursoRepositoryImpl();
+        if (catalogoRepository == null) catalogoRepository = new CatalogoRepositoryImpl();
+        if (examenRepository == null) examenRepository = new ExamenRepositoryImpl();
+
+        // Asegurar que el profesor esté disponible
+        if (profesorLogueado == null) {
+            System.err.println("Error: profesorLogueado no ha sido establecido.");
+            // Mostrar una alerta al usuario o manejar el error apropiadamente
+            return;
+        }
+
+        // Cargar y configurar ComboBox de Cursos
+        if (comboCurso.getItems().isEmpty()) {
+            List<Curso> cursos = cursoRepository.listarCursosPorProfesor(profesorLogueado.getCedula());
+            comboCurso.setConverter(new StringConverter<>() {
+                @Override
+                public String toString(Curso curso) {
+                    return curso == null ? null : curso.getNombre(); // Asume que Curso tiene getNombre()
+                }
+
+                @Override
+                public Curso fromString(String string) {
+                    // No es necesario para un ComboBox no editable, pero es buena práctica implementarlo
+                    return comboCurso.getItems().stream()
+                            .filter(c -> c != null && c.getNombre().equals(string))
+                            .findFirst().orElse(null);
+                }
+            });
+            comboCurso.getItems().setAll(cursos);
+        }
+
+        // Cargar y configurar ComboBox de Categorías
+        if (comboCategoria.getItems().isEmpty()) {
+            List<Categoria> categorias = catalogoRepository.listarCategoriasExamen();
+            comboCategoria.setConverter(new StringConverter<>() {
+                @Override
+                public String toString(Categoria categoria) {
+                    return categoria == null ? null : categoria.getNombre(); // Asume que Categoria tiene getNombre()
+                }
+
+                @Override
+                public Categoria fromString(String string) {
+                    return comboCategoria.getItems().stream()
+                            .filter(cat -> cat != null && cat.getNombre().equals(string))
+                            .findFirst().orElse(null);
+                }
+            });
+            comboCategoria.getItems().setAll(categorias);
+        }
+
+        // Cargar detalles del examen
+        Examen examen = examenRepository.obtenerExamenConDetallesPorId(examenId);
+        if (examen == null) {
+            System.err.println("Error: No se pudo cargar el examen con ID: " + examenId);
+            // Mostrar alerta
+            return;
+        }
+        this.examenActual = examen;
 
         txtNombreExamen.setText(examen.getNombre() != null ? examen.getNombre() : "");
 
-        if (comboCurso.getItems() != null && examen.getCursoId() != null) {
+        // Seleccionar el curso en el ComboBox
+        if (examen.getCursoId() != null) {
+            // El StringConverter se encargará de la visualización.
+            // Aquí solo necesitamos encontrar el objeto Curso correcto.
             comboCurso.setValue(comboCurso.getItems().stream()
-                    .filter(c -> c != null && c.getIdCurso() == examen.getCursoId())
+                    .filter(c -> c != null && c.getIdCurso() == examen.getCursoId()) // Asume que Curso tiene getIdCurso()
                     .findFirst().orElse(null));
+        } else {
+            comboCurso.setValue(null);
         }
-        if (comboCategoria.getItems() != null && examen.getCategoriaId() != null) {
+
+        // Seleccionar la categoría en el ComboBox
+        if (examen.getCategoriaId() != null) {
             comboCategoria.setValue(comboCategoria.getItems().stream()
-                    .filter(cat -> cat != null && cat.getId() == examen.getCategoriaId())
+                    .filter(cat -> cat != null && cat.getId() == examen.getCategoriaId()) // Asume que Categoria tiene getId()
                     .findFirst().orElse(null));
+        } else {
+            comboCategoria.setValue(null);
         }
 
-        txtDescripcionExamen.setText(examen.getDescripcion());
+        txtDescripcionExamen.setText(examen.getDescripcion() != null ? examen.getDescripcion() : "");
 
-        if (examen.getPesoCurso() != null) spinnerPesoCurso.getValueFactory().setValue(examen.getPesoCurso().intValue());
-        if (examen.getCalificacionMinAprobatoria() != null) spinnerUmbralAprobacion.getValueFactory().setValue(examen.getCalificacionMinAprobatoria().doubleValue());
+        if (examen.getPesoCurso() != null) {
+            spinnerPesoCurso.getValueFactory().setValue(examen.getPesoCurso().intValue());
+        } else {
+            spinnerPesoCurso.getValueFactory().setValue(0); // Valor por defecto
+        }
 
-        if (examen.getFecha() != null) datePickerFecha.setValue(examen.getFecha().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        if (examen.getCalificacionMinAprobatoria() != null) {
+            spinnerUmbralAprobacion.getValueFactory().setValue(examen.getCalificacionMinAprobatoria().doubleValue());
+        } else {
+            spinnerUmbralAprobacion.getValueFactory().setValue(3.0); // Valor por defecto
+        }
 
-        if (examen.getHora() != null) {
+        if (examen.getFecha() != null) {
+            // Asumiendo que examen.getFecha() devuelve java.util.Date o java.sql.Date
+            if (examen.getFecha() instanceof java.sql.Date) {
+                datePickerFecha.setValue(((java.sql.Date) examen.getFecha()).toLocalDate());
+            } else { // Si es java.util.Date
+                datePickerFecha.setValue(new java.sql.Date(examen.getFecha().getTime()).toLocalDate());
+            }
+        } else {
+            datePickerFecha.setValue(null);
+        }
+
+        if (examen.getHora() != null) { // Asumiendo que examen.getHora() es LocalDateTime
             LocalDateTime localDateTimeHora = examen.getHora();
             spinnerHoraPresentacion.getValueFactory().setValue(localDateTimeHora.getHour());
             spinnerMinutoPresentacion.getValueFactory().setValue(localDateTimeHora.getMinute());
         } else {
-            spinnerHoraPresentacion.getValueFactory().setValue(8);
-            spinnerMinutoPresentacion.getValueFactory().setValue(0);
+            spinnerHoraPresentacion.getValueFactory().setValue(8); // Valor por defecto
+            spinnerMinutoPresentacion.getValueFactory().setValue(0); // Valor por defecto
         }
 
         spinnerDuracion.getValueFactory().setValue(examen.getTiempo() != null ? examen.getTiempo() : 60);
@@ -210,10 +294,12 @@ public class CrearEditarExamenController implements Initializable {
             checkSeleccionAutomatica.setSelected(false);
         }
 
-        // Cargar solo preguntas principales en la tabla
+        // Cargar preguntas principales del examen
         List<PreguntaExamenDTO> preguntasPrincipales = examenRepository.obtenerPreguntasDeExamenDTO(examen.getId());
         preguntasDelExamenList.setAll(preguntasPrincipales);
-        actualizarTotalPorcentaje();
+        // Asegúrate de que la tabla esté vinculada a preguntasDelExamenList
+        // tablaPreguntasExamen.setItems(preguntasDelExamenList); // Si no se hace en initialize()
+        actualizarTotalPorcentaje(); // Asumo que tienes este método
     }
 
 
@@ -489,7 +575,7 @@ public class CrearEditarExamenController implements Initializable {
                 examen.setId(idExamenCreado); // Actualizar el ID en el objeto local
                 this.examenActual = examen; // Establecer como examen actual para posible edición posterior sin recargar
                 mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Examen creado correctamente con ID: " + idExamenCreado);
-                // limpiarFormularioExamen(); // Opcional: limpiar para crear otro, o mantener para editar
+                limpiarFormularioExamen(); // Opcional: limpiar para crear otro, o mantener para editar
             } else { // Actualizar examen existente
                 boolean actualizado = examenRepository.actualizarExamenCompleto(
                         examen,

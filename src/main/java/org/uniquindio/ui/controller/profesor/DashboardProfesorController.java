@@ -96,8 +96,8 @@ public class DashboardProfesorController implements Initializable {
     }
 
     @FXML
-    void handleGestionPreguntas(ActionEvent event) {
-        cargarVista("/fxml/profesor/gestion_preguntas.fxml", "Gestión de Preguntas");
+    void handleExamenesCreados(ActionEvent event) {
+        cargarVista("/fxml/profesor/examenes_disponibles_profesor.fxml", "Gestión de Preguntas");
     }
 
     @FXML

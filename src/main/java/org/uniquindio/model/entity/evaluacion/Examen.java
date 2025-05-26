@@ -25,6 +25,8 @@ public class Examen {
     private Integer categoriaId; // FK
     private Integer cursoId; // FK
 
+
+
     public Examen(int id, Integer tiempo, String nombre, Integer numeroPreguntas, Date fecha, LocalDateTime hora,
                   BigDecimal calificacionMinAprobatoria, BigDecimal pesoCurso, String descripcion,
                   Integer creacionId, Integer categoriaId, Integer cursoId) {

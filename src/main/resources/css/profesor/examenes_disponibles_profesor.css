@@ -1,0 +1,114 @@
+/* Estilos generales para la vista de exámenes disponibles del profesor */
+
+.root-examenes-disponibles {
+    -fx-background-color: #f4f7f9; /* Un fondo claro y neutro */
+    -fx-font-family: "Arial", sans-serif; /* O la fuente que estés usando en tu aplicación */
+}
+
+.titulo-vista-examenes-disp {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50; /* Un color oscuro para el título */
+    -fx-padding: 15px 20px;
+}
+
+.container-examenes-disp {
+    -fx-padding: 10px 20px 20px 20px;
+}
+
+.label-filtro-examenes-disp {
+    -fx-font-size: 14px;
+    -fx-text-fill: #34495e; /* Un color gris oscuro para las etiquetas */
+}
+
+/* Estilos para el ComboBox */
+.combo-box {
+    -fx-pref-height: 35px;
+    -fx-font-size: 13px;
+    -fx-border-color: #bdc3c7;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+/* Estilos para los botones de acción principales */
+.button-accion-examenes-disp {
+    -fx-background-color: #3498db; /* Azul para acciones primarias */
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-padding: 8px 15px;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.button-accion-examenes-disp:hover {
+    -fx-background-color: #2980b9; /* Un azul más oscuro al pasar el mouse */
+}
+
+
+/* Estilos para la TableView */
+.table-view {
+    -fx-border-color: #dfe6e9;
+    -fx-border-radius: 5px;
+    -fx-background-color: white;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #e8edf0; /* Un color de fondo ligeramente diferente para las cabeceras */
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-padding: 8px;
+}
+
+.table-view .table-cell {
+    -fx-padding: 8px;
+    -fx-font-size: 13px;
+    -fx-border-color: transparent #dfe6e9 transparent transparent; /* Líneas verticales sutiles */
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #fdfdfd;
+}
+.table-view .table-row-cell:even {
+    -fx-background-color: #f7f9fa;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #aedff7; /* Color de selección */
+    -fx-text-fill: #2c3e50;
+}
+
+/* Estilos para los botones dentro de la tabla */
+.button-editar-tabla {
+    -fx-background-color: #2ecc71; /* Verde para editar */
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 5px 10px;
+    -fx-background-radius: 3px;
+    -fx-cursor: hand;
+}
+.button-editar-tabla:hover {
+    -fx-background-color: #27ae60;
+}
+
+.button-eliminar-tabla {
+    -fx-background-color: #e74c3c; /* Rojo para eliminar */
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 5px 10px;
+    -fx-background-radius: 3px;
+    -fx-cursor: hand;
+}
+.button-eliminar-tabla:hover {
+    -fx-background-color: #c0392b;
+}
+
+/* Placeholder para tabla vacía */
+.table-view .placeholder .label {
+    -fx-text-fill: #7f8c8d;
+    -fx-font-size: 14px;
+}

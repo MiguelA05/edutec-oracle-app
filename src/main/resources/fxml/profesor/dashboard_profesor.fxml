@@ -32,7 +32,7 @@
                 <Button fx:id="btnGestionCursos" onAction="#handleGestionCursos" styleClass="boton-navegacion" text="Gestión de Cursos" prefWidth="Infinity"/>
                 <Button fx:id="btnGestionExamenes" onAction="#handleGestionExamenes" styleClass="boton-navegacion" text="Crear/Editar Examen" prefWidth="Infinity"/>
                 <Button fx:id="btnBancoPreguntas" onAction="#handleBancoPreguntas" styleClass="boton-navegacion" text="Banco de Preguntas" prefWidth="Infinity"/>
-                <Button fx:id="btnGestionPreguntas" onAction="#handleGestionPreguntas" styleClass="boton-navegacion" text="Gestión de Preguntas" prefWidth="Infinity"/>
+                <Button fx:id="btnGestionPreguntas" onAction="#handleExamenesCreados" styleClass="boton-navegacion" text="Listar Examenes Creados" prefWidth="Infinity"/>
                 <Button fx:id="btnEstadisticas" onAction="#handleEstadisticas" styleClass="boton-navegacion" text="Estadísticas y Reportes" prefWidth="Infinity"/>
                 <Button fx:id="btnHorariosProfesor" onAction="#handleHorariosProfesor" styleClass="boton-navegacion" text="Mis Horarios" prefWidth="Infinity"/>
                 <VBox VBox.vgrow="ALWAYS"/>

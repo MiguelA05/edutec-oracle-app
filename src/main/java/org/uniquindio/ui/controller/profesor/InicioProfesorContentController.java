@@ -11,7 +11,6 @@ import org.uniquindio.model.entity.usuario.Profesor;
 // import org.uniquindio.repository.impl.PreguntaRepositoryImpl; // Ejemplo
 
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 public class InicioProfesorContentController implements Initializable {
@@ -144,7 +143,7 @@ public class InicioProfesorContentController implements Initializable {
 
     @FXML
     private void irAGestionPreguntas(ActionEvent event) {
-        if (dashboardController != null) dashboardController.handleGestionPreguntas(event);
+        if (dashboardController != null) dashboardController.handleExamenesCreados(event);
         else System.err.println("DashboardProfesorController no está disponible.");
     }
     @FXML
